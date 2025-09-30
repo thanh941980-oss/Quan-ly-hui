@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Dây Hụi - Quản Lý Hụi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        /* Giữ nguyên CSS như trước */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            border: none;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            border: none;
+        }
+        
+        .back-btn {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .back-btn:hover {
+            text-decoration: underline;
+        }
+        
+        .table th {
+            background-color: var(--light-color);
+            font-weight: 600;
+        }
+        
+        .badge-active {
+            background-color: var(--success-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .badge-inactive {
+            background-color: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .badge-warning {
+            background-color: var(--warning-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .action-buttons .btn {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: var(--success-color);
+        }
+        
+        .status-inactive {
+            background-color: #6c757d;
+        }
+        
+        .status-pending {
+            background-color: var(--warning-color);
+        }
+        
+        .money-amount {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .hui-info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+        </a>
+        
+        <div class="header">
+            <h2><i class="fas fa-list-alt"></i> Danh Sách Dây Hụi</h2>
+            <button class="btn btn-primary" onclick="showAddModal()">
+                <i class="fas fa-plus-circle"></i> Tạo dây hụi mới
+            </button>
+        </div>
+
+        <!-- Thống kê nhanh -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 id="totalHuiCount">0</h3>
+                        <p class="text-muted">Tổng số dây hụi</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 id="activeHuiCount">0</h3>
+                        <p class="text-muted">Đang hoạt động</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 id="completedHuiCount">0</h3>
+                        <p class="text-muted">Đã kết thúc</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 id="pendingHuiCount">0</h3>
+                        <p class="text-muted">Chờ bắt đầu</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-table"></i> Danh sách dây hụi
+            </div>
+            <div class="card-body">
+                <div id="loadingState" class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Đang tải dữ liệu...</p>
+                </div>
+                
+                <div id="errorState" class="empty-state" style="display: none;">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <h4>Không thể tải dữ liệu</h4>
+                    <p id="errorMessage">Vui lòng kiểm tra kết nối và thử lại</p>
+                    <button class="btn btn-primary" onclick="loaddayhuis()">
+                        <i class="fas fa-redo"></i> Thử lại
+                    </button>
+                </div>
+                
+                <div id="successState" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tên dây hụi</th>
+                                    <th>Loại hụi</th>
+                                    <th>Kỳ hạn (Khui/lần)</th>
+                                    <th>Tiền hụi</th>
+                                    <th>Tiền thảo</th>
+                                    <th>Số kỳ</th>
+                                    <th>Ngày mở</th>
+                                    <th>Mãn kỳ (dự kiến)</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="huiTableBody">
+                                <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 text-center" id="emptyState" style="display: none;">
+                        <i class="fas fa-list-alt fa-3x text-muted mb-3"></i>
+                        <h4>Chưa có dây hụi nào</h4>
+                        <p>Hãy tạo dây hụi đầu tiên để bắt đầu</p>
+                        <button class="btn btn-primary" onclick="showAddModal()">
+                            <i class="fas fa-plus-circle"></i> Tạo dây hụi đầu tiên
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tạo Dây Hụi Mới -->
+    <div class="modal fade" id="addHuiModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tạo Dây Hụi Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addHuiForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên dây hụi *</label>
+                                    <input type="text" class="form-control" id="huiName" required 
+                                           placeholder="VD: D1 Ngày 100k">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Loại hụi *</label>
+                                    <select class="form-select" id="huiType" required>
+                                        <option value="">Chọn loại hụi</option>
+                                        <option value="hui_dau">Hụi đấu</option>                                        
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Kỳ hạn (Kỳ họp) *</label>
+                                    <select class="form-select" id="huiPeriod" required>
+                                        <option value="">Chọn kỳ hạn</option>
+                                        <option value="ngay/2_lan">Ngày/2 lần</option>
+                                        <option value="ngay">Ngày</option>
+                                        <option value="tuan">Tuần</option>
+                                        <option value="thang">Tháng</option>
+                                        <option value="2 ngay">2 ngày</option>
+                                        <option value="3 ngay">3 ngày</option>
+                                        <option value="5 ngay">5 ngày</option>
+                                        <option value="10 ngay">10 ngày</option>
+                                        <option value="14 ngay">14 ngày</option>
+                                        <option value="15 ngay">15 ngày</option>
+                                        <option value="20 ngay">20 ngày</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Số kỳ (Số chân) *</label>
+                                    <input type="number" class="form-control" id="huiTotalPeriods" 
+                                           min="1" max="100" required value="15">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Tiền hụi *</label>
+                                    <input type="number" class="form-control" id="huiAmount" 
+                                           required value="100000">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Tiền thảo *</label>
+                                    <input type="number" class="form-control" id="huiBidAmount" 
+                                           required value="50000">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Thẩm tối thiểu</label>
+                                    <input type="number" class="form-control" id="huiMinBid" 
+                                           value="20000">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Kiểu thu thảo *</label>
+                                    <select class="form-select" id="huiBidType" required>
+                                        <option value="thu_truoc">Thu trước</option>
+                                        <option value="thu_ky_1">Thu kỳ 1</option>
+                                        <option value="thu_khi_hot">Thu khi hốt</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Ngày mở hụi *</label>
+                                    <input type="date" class="form-control" id="huiStartDate" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- CHỈ GIỮ LẠI MÃN KỲ (DỰ KIẾN) -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Mãn kỳ (Dự kiến)</label>
+                                    <input type="date" class="form-control" id="huiEndDate" readonly>
+                                </div>
+                            </div>
+                       <!-- </div> 
+
+                        <div class="row"> -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Giờ đấu</label>
+                                    <input type="time" class="form-control" id="huiBidTime" value="11:00">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="adddayhui()">Tạo dây hụi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYV8na-Az2LAgpl6QM2Tiwr6Gm9yhXQZ0",
+            authDomain: "quan-ly-hui-8ad1c.firebaseapp.com",
+            databaseURL: "https://quan-ly-hui-8ad1c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "quan-ly-hui-8ad1c",
+            storageBucket: "quan-ly-hui-8ad1c.firebasestorage.app",
+            messagingSenderId: "665511229865",
+            appId: "1:665511229865:web:fe44f814fff618e35e6cb8"
+        };
+
+        let database;
+        let dayhuis = [];
+
+        // Hàm khởi tạo Firebase
+        function initializeFirebase() {
+            try {
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase SDK chưa được tải');
+                }
+
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                
+                database = firebase.database();
+                console.log('✅ Firebase đã được khởi tạo thành công');
+                return true;
+            } catch (error) {
+                console.error('❌ Lỗi khởi tạo Firebase:', error);
+                return false;
+            }
+        }
+
+        // Hiển thị trạng thái
+        function showState(state) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('successState').style.display = 'none';
+            
+            if (state === 'loading') {
+                document.getElementById('loadingState').style.display = 'block';
+            } else if (state === 'error') {
+                document.getElementById('errorState').style.display = 'block';
+            } else if (state === 'success') {
+                document.getElementById('successState').style.display = 'block';
+            }
+        }
+
+        // Tải danh sách dây hụi
+        async function loaddayhuis() {
+            console.log('🔄 Đang tải dữ liệu dây hụi...');
+            showState('loading');
+
+            if (!initializeFirebase()) {
+                showError('Không thể khởi tạo Firebase');
+                return;
+            }
+
+            try {
+                const snapshot = await database.ref('dayhui').once('value');
+                dayhuis = [];
+                
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    Object.keys(data).forEach(key => {
+                        dayhuis.push({
+                            id: key,
+                            ...data[key]
+                        });
+                    });
+                    console.log(`✅ Đã tải ${dayhuis.length} dây hụi`);
+                } else {
+                    console.log('ℹ️ Chưa có dữ liệu dây hụi');
+                }
+
+                renderdayhuis();
+                updateStatistics();
+                showState('success');
+                
+            } catch (error) {
+                console.error('❌ Lỗi khi tải dữ liệu:', error);
+                showError('Không thể tải dữ liệu từ Firebase', error);
+            }
+        }
+
+        // Hiển thị danh sách dây hụi
+        function renderdayhuis() {
+            const tbody = document.getElementById('huiTableBody');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (dayhuis.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            tbody.innerHTML = dayhuis.map((hui, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        <strong>${hui.tendayhui || 'Chưa có tên'}</strong>
+                        <br><small class="text-muted">ID: ${hui.id.substring(0, 8)}...</small>
+                    </td>
+                    <td>${getHuiTypeText(hui.loaiHui)}</td>
+                    <td>${getPeriodText(hui.kyHan)}</td>
+                    <td class="money-amount">${formatCurrency(hui.tienHui || 0)}</td>
+                    <td class="money-amount">${formatCurrency(hui.tienThao || 0)}</td>
+                    <td>${hui.soKy || 0}/${hui.tongSoKy || 0}</td>
+                    <td>${formatDate(hui.ngayMoHui)}</td>
+                    <td>${formatDate(hui.manKyDuKien)}</td>
+                    <td>
+                        <span class="badge ${getStatusClass(hui.trangThai)}">
+                            <span class="status-indicator ${getStatusIndicatorClass(hui.trangThai)}"></span>
+                            ${getStatusText(hui.trangThai)}
+                        </span>
+                    </td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewHuiDetail('${hui.id}')">
+                            <i class="fas fa-eye"></i> Xem
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="editHui('${hui.id}')">
+                            <i class="fas fa-edit"></i> Sửa
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteHui('${hui.id}')">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Cập nhật thống kê
+        function updateStatistics() {
+            const total = dayhuis.length;
+            const active = dayhuis.filter(h => h.trangThai === 'dang_hoat_dong').length;
+            const completed = dayhuis.filter(h => h.trangThai === 'da_ket_thuc').length;
+            const pending = dayhuis.filter(h => h.trangThai === 'cho_bat_dau').length;
+
+            document.getElementById('totalHuiCount').textContent = total;
+            document.getElementById('activeHuiCount').textContent = active;
+            document.getElementById('completedHuiCount').textContent = completed;
+            document.getElementById('pendingHuiCount').textContent = pending;
+        }
+
+        // Hàm tính mãn kỳ dự kiến
+        function calculateEndDate(startDate, totalPeriods, periodType) {
+            if (!startDate || !totalPeriods) return '';
+            
+            const start = new Date(startDate);
+            const end = new Date(start);
+            
+            switch(periodType) {
+                case 'ngay':
+                case 'ngay/2 lan':
+                case '2 ngay':
+                    end.setDate(start.getDate() + totalPeriods);
+                    break;
+                case 'tuan':
+                    end.setDate(start.getDate() + (totalPeriods * 7));
+                    break;
+                case 'thang':
+                    end.setMonth(start.getMonth() + totalPeriods);
+                    break;
+                default:
+                    end.setDate(start.getDate() + totalPeriods);
+            }
+            
+            return end.toISOString().split('T')[0];
+        }
+
+        // Hàm hỗ trợ định dạng
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND' 
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '---';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        function getHuiTypeText(type) {
+            const types = {
+                'hui_dau': 'Hụi đầu',
+                'hui_duoi': 'Hụi đuôi',
+                'hui_giua': 'Hụi giữa'
+            };
+            return types[type] || type;
+        }
+
+        function getPeriodText(period) {
+            const periods = {
+                'ngay': 'Ngày',
+                'tuan': 'Tuần',
+                'thang': 'Tháng',
+                'ngay/2 lan': 'Ngày/2 lần',
+                '2 ngay': '2 ngày'
+            };
+            return periods[period] || period;
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'dang_hoat_dong': 'badge-active',
+                'cho_bat_dau': 'badge-warning',
+                'da_ket_thuc': 'badge-inactive'
+            };
+            return classes[status] || 'badge-inactive';
+        }
+
+        function getStatusIndicatorClass(status) {
+            const classes = {
+                'dang_hoat_dong': 'status-active',
+                'cho_bat_dau': 'status-pending',
+                'da_ket_thuc': 'status-inactive'
+            };
+            return classes[status] || 'status-inactive';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'dang_hoat_dong': 'Đang hoạt động',
+                'cho_bat_dau': 'Chờ bắt đầu',
+                'da_ket_thuc': 'Đã kết thúc'
+            };
+            return texts[status] || status;
+        }
+
+        // Cập nhật mãn kỳ khi thay đổi input
+        function updateCalculatedDates() {
+            const startDate = document.getElementById('huiStartDate').value;
+            const totalPeriods = parseInt(document.getElementById('huiTotalPeriods').value) || 0;
+            const periodType = document.getElementById('huiPeriod').value;
+            
+            if (startDate && totalPeriods > 0 && periodType) {
+                // Tính ngày mãn kỳ dự kiến
+                const endDate = calculateEndDate(startDate, totalPeriods, periodType);
+                document.getElementById('huiEndDate').value = endDate;
+            }
+        }
+
+        // Hiển thị modal thêm dây hụi
+        function showAddModal() {
+            // Đặt ngày mặc định
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('huiStartDate').value = today;
+            
+            // Reset form
+            document.getElementById('addHuiForm').reset();
+            document.getElementById('huiStartDate').value = today;
+            document.getElementById('huiTotalPeriods').value = 15;
+            
+            // Tính toán mãn kỳ
+            updateCalculatedDates();
+            
+            const modal = new bootstrap.Modal(document.getElementById('addHuiModal'));
+            modal.show();
+        }
+
+        // Thêm dây hụi mới
+        async function adddayhui() {
+            const formData = {
+                tendayhui: document.getElementById('huiName').value.trim(),
+                loaiHui: document.getElementById('huiType').value,
+                kyHan: document.getElementById('huiPeriod').value,
+                tongSoKy: parseInt(document.getElementById('huiTotalPeriods').value),
+                tienHui: parseInt(document.getElementById('huiAmount').value),
+                tienThao: parseInt(document.getElementById('huiBidAmount').value),
+                thamToiThieu: parseInt(document.getElementById('huiMinBid').value) || 0,
+                kieuThuThao: document.getElementById('huiBidType').value,
+                ngayMoHui: document.getElementById('huiStartDate').value,
+                manKyDuKien: document.getElementById('huiEndDate').value, // Lấy từ mãn kỳ dự kiến
+                gioDau: document.getElementById('huiBidTime').value + ':00',
+                soKy: 0, // Số kỳ đã qua
+                trangThai: 'cho_bat_dau',
+                ngayTao: new Date().toISOString()
+            };
+
+            // Validate
+            if (!formData.tendayhui || !formData.loaiHui || !formData.kyHan) {
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+                return;
+            }
+
+            if (!initializeFirebase()) {
+                alert('❌ Lỗi kết nối Firebase. Vui lòng thử lại!');
+                return;
+            }
+
+            try {
+                await database.ref('dayhui').push(formData);
+                alert('✅ Tạo dây hụi thành công!');
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addHuiModal'));
+                modal.hide();
+                loaddayhuis();
+                
+            } catch (error) {
+                console.error('❌ Lỗi khi tạo dây hụi:', error);
+                alert('❌ Có lỗi khi tạo dây hụi: ' + error.message);
+            }
+        }
+
+        // Xóa dây hụi
+        async function deleteHui(huiId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa dây hụi này? Hành động này không thể hoàn tác!')) {
+                return;
+            }
+
+            try {
+                await database.ref('dayhui/' + huiId).remove();
+                alert('✅ Xóa dây hụi thành công!');
+                loaddayhuis();
+            } catch (error) {
+                console.error('❌ Lỗi khi xóa dây hụi:', error);
+                alert('❌ Có lỗi khi xóa dây hụi: ' + error.message);
+            }
+        }
+
+        // Xem chi tiết dây hụi
+        function viewHuiDetail(huiId) {
+            window.location.href = `dayhui-detail.html?id=${huiId}`;
+        }
+
+        // Sửa dây hụi
+        function editHui(huiId) {
+            alert('Tính năng sửa dây hụi sẽ được phát triển sau!');
+        }
+
+        // Gắn sự kiện cho các input để tính toán tự động
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gắn sự kiện change cho các input cần tính toán
+            document.getElementById('huiStartDate').addEventListener('change', updateCalculatedDates);
+            document.getElementById('huiTotalPeriods').addEventListener('change', updateCalculatedDates);
+            document.getElementById('huiPeriod').addEventListener('change', updateCalculatedDates);
+            
+            // Gắn sự kiện input để tính toán real-time
+            document.getElementById('huiTotalPeriods').addEventListener('input', updateCalculatedDates);
+            
+            console.log('🚀 Ứng dụng đang khởi động...');
+            loaddayhuis();
+        });
+    </script>
+</body>
+</html>

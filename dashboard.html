@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Hụi - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --success-color: #2ecc71;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .sidebar {
+            background-color: var(--secondary-color);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar .nav-link {
+            color: #bdc3c7;
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .stat-card .label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .recent-activity {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .recent-activity li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .recent-activity li:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .table th {
+            background-color: var(--light-color);
+        }
+        
+        .badge-success {
+            background-color: var(--success-color);
+        }
+        
+        .badge-warning {
+            background-color: #f39c12;
+        }
+        
+        .badge-danger {
+            background-color: var(--accent-color);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <div class="text-center mb-4">
+                    <h3><i class="fas fa-hand-holding-usd"></i> Quản Lý Hụi</h3>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-tab="dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dayhui.html">
+                            <i class="fas fa-list"></i> Danh sách dây hụi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+        <a class="nav-link" href="hoivien.html">
+            <i class="fas fa-users"></i> Danh sách hội viên
+        </a>
+    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="donghot">
+                            <i class="fas fa-money-bill-wave"></i> Đóng hốt hụi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="chuhui.html">
+                            <i class="fas fa-user-tie"></i> Chủ hụi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="tinhtien">
+                            <i class="fas fa-calculator"></i> Tính tiền hội viên
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="cono">
+                            <i class="fas fa-file-invoice-dollar"></i> Tiền còn nợ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="baocao">
+                            <i class="fas fa-chart-bar"></i> Báo cáo tiền
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="khui">
+                            <i class="fas fa-gem"></i> Thông tin khui hụi
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <div class="header">
+                    <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                    <div>
+                        <span class="me-3"><i class="fas fa-user-circle"></i> Admin</span>
+                        <button class="btn btn-outline-primary btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+                    </div>
+                </div>
+                
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content active">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-list"></i>
+                                <div class="number" id="total-dayhui">5</div>
+                                <div class="label">Tổng dây hụi</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-users"></i>
+                                <div class="number" id="total-hoivien">42</div>
+                                <div class="label">Tổng hội viên</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <div class="number" id="total-money">125.000.000đ</div>
+                                <div class="label">Tổng tiền hụi</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <div class="number" id="total-debt">15.000.000đ</div>
+                                <div class="label">Tổng nợ</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-chart-line"></i> Biểu đồ thu chi
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="revenueChart" height="250"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-bell"></i> Hoạt động gần đây
+                                </div>
+                                <div class="card-body">
+                                    <ul class="recent-activity">
+                                        <li>
+                                            <div class="activity-icon">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                            </div>
+                                            <div>
+                                                <div>Nguyễn Văn A đóng hốt tháng 6</div>
+                                                <small class="text-muted">10 phút trước</small>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="activity-icon">
+                                                <i class="fas fa-user-plus"></i>
+                                            </div>
+                                            <div>
+                                                <div>Thêm hội viên mới: Trần Thị B</div>
+                                                <small class="text-muted">2 giờ trước</small>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="activity-icon">
+                                                <i class="fas fa-gem"></i>
+                                            </div>
+                                            <div>
+                                                <div>Khui hụi dây H01 tháng 6</div>
+                                                <small class="text-muted">1 ngày trước</small>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="activity-icon">
+                                                <i class="fas fa-file-invoice-dollar"></i>
+                                            </div>
+                                            <div>
+                                                <div>Báo cáo tháng 5 đã được tạo</div>
+                                                <small class="text-muted">3 ngày trước</small>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-exclamation-circle"></i> Hốt hụi sắp đến hạn</span>
+                                    <button class="btn btn-primary btn-sm">Xem tất cả</button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Dây hụi</th>
+                                                    <th>Hội viên</th>
+                                                    <th>Ngày đóng</th>
+                                                    <th>Số tiền</th>
+                                                    <th>Trạng thái</th>
+                                                    <th>Thao tác</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>H01 - 10 triệu</td>
+                                                    <td>Nguyễn Văn A</td>
+                                                    <td>15/06/2023</td>
+                                                    <td>10.000.000đ</td>
+                                                    <td><span class="badge badge-warning">Sắp đến hạn</span></td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary">Xem</button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>H02 - 5 triệu</td>
+                                                    <td>Trần Thị B</td>
+                                                    <td>20/06/2023</td>
+                                                    <td>5.000.000đ</td>
+                                                    <td><span class="badge badge-warning">Sắp đến hạn</span></td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary">Xem</button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>H03 - 20 triệu</td>
+                                                    <td>Lê Văn C</td>
+                                                    <td>25/06/2023</td>
+                                                    <td>20.000.000đ</td>
+                                                    <td><span class="badge badge-success">Đã đóng</span></td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary">Xem</button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Các tab khác sẽ được tải động -->
+                <div id="tab-content-container">
+                    <!-- Nội dung các tab khác sẽ được tải ở đây -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Khởi tạo Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYV8na-Az2LAgpl6QM2Tiwr6Gm9yhXQZ0",
+            authDomain: "quan-ly-hui-8ad1c.firebaseapp.com",
+            databaseURL: "https://quan-ly-hui-8ad1c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "quan-ly-hui-8ad1c",
+            storageBucket: "quan-ly-hui-8ad1c.firebasestorage.app",
+            messagingSenderId: "665511229865",
+            appId: "1:665511229865:web:fe44f814fff618e35e6cb8"
+        };
+        
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Xử lý chuyển tab
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Xóa active class từ tất cả các tab
+                document.querySelectorAll('.nav-link').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Thêm active class cho tab được chọn
+                this.classList.add('active');
+                
+                const tabId = this.getAttribute('data-tab');
+                const href = this.getAttribute('href');
+                
+                // Nếu là liên kết đến trang khác
+                if (href && href !== '#') {
+                    window.location.href = href;
+                    return;
+                }
+                
+                // Ẩn tất cả nội dung tab
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Hiển thị tab được chọn
+                if (tabId && document.getElementById(tabId)) {
+                    document.getElementById(tabId).classList.add('active');
+                }
+            });
+        });
+        
+        // Vẽ biểu đồ
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+                datasets: [{
+                    label: 'Thu nhập (triệu đồng)',
+                    data: [120, 150, 180, 200, 170, 220],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderWidth: 2,
+                    fill: true
+                }, {
+                    label: 'Chi phí (triệu đồng)',
+                    data: [80, 100, 120, 150, 130, 160],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Tải dữ liệu từ Firebase
+        function loadData() {
+            // Lấy tổng số dây hụi
+            database.ref('dayhui').once('value').then(snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('total-dayhui').textContent = Object.keys(data).length;
+                }
+            });
+            
+            // Lấy tổng số hội viên
+            database.ref('hoivien').once('value').then(snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('total-hoivien').textContent = Object.keys(data).length;
+                }
+            });
+            
+            // Các hàm khác để lấy dữ liệu từ Firebase
+            // ...
+        }
+        
+        // Gọi hàm tải dữ liệu khi trang được tải
+        window.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
