@@ -223,108 +223,136 @@
         .search-member input {
             font-size: 0.85rem;
         }
+        
+        .auth-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="dashboard.html" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
-        </a>
-        
-        <div class="header">
-            <h2><i class="fas fa-list-alt"></i> Danh Sách Dây Hụi</h2>
-            <button class="btn btn-primary" onclick="showAddModal()">
-                <i class="fas fa-plus-circle"></i> Tạo dây hụi mới
+        <!-- Phần xác thực -->
+        <div id="authSection" class="auth-section" style="display: none;">
+            <h4><i class="fas fa-user-shield"></i> Xác thực người dùng</h4>
+            <p>Vui lòng đăng nhập để tiếp tục sử dụng ứng dụng</p>
+            <button class="btn btn-primary" onclick="signInWithEmail()">
+                <i class="fas fa-sign-in-alt"></i> Đăng nhập
+            </button>
+            <button class="btn btn-secondary" onclick="signUp()">
+                <i class="fas fa-user-plus"></i> Đăng ký
             </button>
         </div>
 
-        <!-- Thống kê nhanh -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 id="totalHuiCount">0</h3>
-                        <p class="text-muted">Tổng số dây hụi</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 id="activeHuiCount">0</h3>
-                        <p class="text-muted">Đang hoạt động</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 id="completedHuiCount">0</h3>
-                        <p class="text-muted">Đã kết thúc</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h3 id="pendingHuiCount">0</h3>
-                        <p class="text-muted">Chờ bắt đầu</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-table"></i> Danh sách dây hụi
-            </div>
-            <div class="card-body">
-                <div id="loadingState" class="loading-spinner">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Đang tải dữ liệu...</p>
-                </div>
-                
-                <div id="errorState" class="empty-state" style="display: none;">
-                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                    <h4>Không thể tải dữ liệu</h4>
-                    <p id="errorMessage">Vui lòng kiểm tra kết nối và thử lại</p>
-                    <button class="btn btn-primary" onclick="loadDayhuis()">
-                        <i class="fas fa-redo"></i> Thử lại
+        <div id="appContent" style="display: none;">
+            <a href="dashboard.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+            </a>
+            
+            <div class="header">
+                <h2><i class="fas fa-list-alt"></i> Danh Sách Dây Hụi</h2>
+                <div>
+                    <span class="me-3">Xin chào, <span id="userEmail"></span></span>
+                    <button class="btn btn-primary" onclick="showAddModal()">
+                        <i class="fas fa-plus-circle"></i> Tạo dây hụi mới
+                    </button>
+                    <button class="btn btn-outline-secondary ms-2" onclick="signOut()">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
                     </button>
                 </div>
-                
-                <div id="successState" style="display: none;">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Tên dây hụi</th>
-                                    <th>Loại hụi</th>
-                                    <th>Kỳ hạn (Khui/lần)</th>
-                                    <th>Tiền hụi</th>
-                                    <th>Tiền thảo</th>
-                                    <th>Số kỳ</th>
-                                    <th>Ngày mở</th>
-                                    <th>Mãn kỳ (dự kiến)</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="huiTableBody">
-                                <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
-                            </tbody>
-                        </table>
+            </div>
+
+            <!-- Thống kê nhanh -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 id="totalHuiCount">0</h3>
+                            <p class="text-muted">Tổng số dây hụi</p>
+                        </div>
                     </div>
-                    <div class="mt-3 text-center" id="emptyState" style="display: none;">
-                        <i class="fas fa-list-alt fa-3x text-muted mb-3"></i>
-                        <h4>Chưa có dây hụi nào</h4>
-                        <p>Hãy tạo dây hụi đầu tiên để bắt đầu</p>
-                        <button class="btn btn-primary" onclick="showAddModal()">
-                            <i class="fas fa-plus-circle"></i> Tạo dây hụi đầu tiên
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 id="activeHuiCount">0</h3>
+                            <p class="text-muted">Đang hoạt động</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 id="completedHuiCount">0</h3>
+                            <p class="text-muted">Đã kết thúc</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 id="pendingHuiCount">0</h3>
+                            <p class="text-muted">Chờ bắt đầu</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-table"></i> Danh sách dây hụi
+                </div>
+                <div class="card-body">
+                    <div id="loadingState" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Đang tải dữ liệu...</p>
+                    </div>
+                    
+                    <div id="errorState" class="empty-state" style="display: none;">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h4>Không thể tải dữ liệu</h4>
+                        <p id="errorMessage">Vui lòng kiểm tra kết nối và thử lại</p>
+                        <button class="btn btn-primary" onclick="loadDayhuis()">
+                            <i class="fas fa-redo"></i> Thử lại
                         </button>
+                    </div>
+                    
+                    <div id="successState" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Tên dây hụi</th>
+                                        <th>Loại hụi</th>
+                                        <th>Kỳ hạn (Khui/lần)</th>
+                                        <th>Tiền hụi</th>
+                                        <th>Tiền thảo</th>
+                                        <th>Số kỳ</th>
+                                        <th>Ngày mở</th>
+                                        <th>Mãn kỳ (dự kiến)</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="huiTableBody">
+                                    <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3 text-center" id="emptyState" style="display: none;">
+                            <i class="fas fa-list-alt fa-3x text-muted mb-3"></i>
+                            <h4>Chưa có dây hụi nào</h4>
+                            <p>Hãy tạo dây hụi đầu tiên để bắt đầu</p>
+                            <button class="btn btn-primary" onclick="showAddModal()">
+                                <i class="fas fa-plus-circle"></i> Tạo dây hụi đầu tiên
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -341,6 +369,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="addHuiForm">
+                        <!-- Form content giữ nguyên -->
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -447,7 +476,7 @@
                             </div>
                         </div>
                         
-                        <!-- PHẦN DANH SÁCH HỘI VIÊN MỚI -->
+                        <!-- PHẦN DANH SÁCH HỘI VIÊN -->
                         <div class="member-list-section">
                             <h6 class="mb-3">Danh sách hội viên</h6>
                             
@@ -487,6 +516,33 @@
         </div>
     </div>
 
+    <!-- Modal Đăng nhập -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Đăng nhập</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="loginEmail" placeholder="email@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" class="form-control" id="loginPassword" placeholder="Mật khẩu">
+                    </div>
+                    <div class="alert alert-danger" id="loginError" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="login()">Đăng nhập</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
@@ -503,11 +559,10 @@
 
         let database;
         let dayhuis = [];
-        let members = []; // Danh sách hội viên
-        let savedMemberNames = []; // Danh sách tên đã lưu để gợi ý
+        let members = [];
         let currentUser = null;
 
-        // Hàm khởi tạo Firebase
+        // Khởi tạo Firebase
         function initializeFirebase() {
             try {
                 if (typeof firebase === 'undefined') {
@@ -527,35 +582,83 @@
             }
         }
 
-        // Đăng nhập ẩn danh để có quyền truy cập
-        async function signInAnonymously() {
-            try {
-                const auth = firebase.auth();
-                const userCredential = await auth.signInAnonymously();
-                currentUser = userCredential.user;
-                console.log('✅ Đã đăng nhập ẩn danh với UID:', currentUser.uid);
-                return currentUser;
-            } catch (error) {
-                console.error('❌ Lỗi đăng nhập ẩn danh:', error);
-                return null;
-            }
+        // Kiểm tra trạng thái đăng nhập
+        function checkAuthState() {
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    // Người dùng đã đăng nhập
+                    currentUser = user;
+                    document.getElementById('userEmail').textContent = user.email || 'Người dùng';
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('appContent').style.display = 'block';
+                    loadDayhuis();
+                } else {
+                    // Chưa đăng nhập
+                    currentUser = null;
+                    document.getElementById('authSection').style.display = 'block';
+                    document.getElementById('appContent').style.display = 'none';
+                }
+            });
         }
 
-        // Hàm đảm bảo đã đăng nhập trước khi thao tác với Firebase
-        async function ensureSignedIn() {
-            if (currentUser) {
-                return currentUser;
+        // Hiển thị modal đăng nhập
+        function signInWithEmail() {
+            const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+            modal.show();
+        }
+
+        // Đăng nhập
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!email || !password) {
+                errorDiv.textContent = 'Vui lòng nhập email và mật khẩu';
+                errorDiv.style.display = 'block';
+                return;
             }
-            
-            // Nếu chưa đăng nhập, thử đăng nhập
-            const auth = firebase.auth();
-            if (auth.currentUser) {
-                currentUser = auth.currentUser;
-                return currentUser;
+
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Đăng nhập thành công
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                    modal.hide();
+                    errorDiv.style.display = 'none';
+                })
+                .catch((error) => {
+                    errorDiv.textContent = 'Lỗi đăng nhập: ' + error.message;
+                    errorDiv.style.display = 'block';
+                });
+        }
+
+        // Đăng ký tài khoản mới
+        function signUp() {
+            const email = prompt('Nhập email để đăng ký:');
+            if (!email) return;
+
+            const password = prompt('Nhập mật khẩu (ít nhất 6 ký tự):');
+            if (!password) return;
+
+            if (password.length < 6) {
+                alert('Mật khẩu phải có ít nhất 6 ký tự');
+                return;
             }
-            
-            // Đăng nhập ẩn danh
-            return await signInAnonymously();
+
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    alert('Đăng ký thành công! Vui lòng đăng nhập.');
+                })
+                .catch((error) => {
+                    alert('Lỗi đăng ký: ' + error.message);
+                });
+        }
+
+        // Đăng xuất
+        function signOut() {
+            if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                firebase.auth().signOut();
+            }
         }
 
         // Hiển thị trạng thái
@@ -582,24 +685,16 @@
 
         // Tải danh sách dây hụi
         async function loadDayhuis() {
-            console.log('🔄 Đang tải dữ liệu dây hụi...');
-            showState('loading');
-
-            if (!initializeFirebase()) {
-                showError('Không thể khởi tạo Firebase');
+            if (!currentUser) {
+                showError('Vui lòng đăng nhập để xem dữ liệu');
                 return;
             }
 
-            try {
-                // Đảm bảo đã đăng nhập
-                const user = await ensureSignedIn();
-                if (!user) {
-                    showError('Không thể đăng nhập vào Firebase');
-                    return;
-                }
+            console.log('🔄 Đang tải dữ liệu dây hụi...');
+            showState('loading');
 
-                // Sử dụng đường dẫn theo rules: users/{userId}/dayhui
-                const userDayhuiRef = database.ref('users/' + user.uid + '/dayhui');
+            try {
+                const userDayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
                 const snapshot = await userDayhuiRef.once('value');
                 dayhuis = [];
                 
@@ -674,7 +769,7 @@
             `).join('');
         }
 
-        // Cập nhật thống kê
+        // Các hàm hỗ trợ khác giữ nguyên
         function updateStatistics() {
             const total = dayhuis.length;
             const active = dayhuis.filter(h => h.trangThai === 'dang_hoat_dong').length;
@@ -687,7 +782,6 @@
             document.getElementById('pendingHuiCount').textContent = pending;
         }
 
-        // Hàm tính mãn kỳ dự kiến
         function calculateEndDate(startDate, totalPeriods, periodType) {
             if (!startDate || !totalPeriods) return '';
             
@@ -713,7 +807,6 @@
             return end.toISOString().split('T')[0];
         }
 
-        // Hàm hỗ trợ định dạng
         function formatCurrency(amount) {
             return new Intl.NumberFormat('vi-VN', { 
                 style: 'currency', 
@@ -774,22 +867,18 @@
             return texts[status] || status;
         }
 
-        // Cập nhật mãn kỳ khi thay đổi input
         function updateCalculatedDates() {
             const startDate = document.getElementById('huiStartDate').value;
             const totalPeriods = parseInt(document.getElementById('huiTotalPeriods').value) || 0;
             const periodType = document.getElementById('huiPeriod').value;
             
             if (startDate && totalPeriods > 0 && periodType) {
-                // Tính ngày mãn kỳ dự kiến
                 const endDate = calculateEndDate(startDate, totalPeriods, periodType);
                 document.getElementById('huiEndDate').value = endDate;
             }
         }
 
-        // ========== QUẢN LÝ DANH SÁCH HỘI VIÊN ==========
-        
-        // Thêm hội viên mới
+        // Quản lý danh sách hội viên
         function addMember() {
             const nameInput = document.getElementById('newMemberName');
             const positionInput = document.getElementById('newMemberPosition');
@@ -809,31 +898,19 @@
                 return;
             }
             
-            // THAY ĐỔI: KHÔNG KIỂM TRA TRÙNG SỐ CHÂN NỮA
-            // Cho phép số chân trùng nhau
-            
-            // Thêm hội viên vào danh sách
             members.push({
-                id: Date.now().toString(), // ID tạm thời
+                id: Date.now().toString(),
                 name: name,
                 position: position
             });
             
-            // Lưu tên vào danh sách gợi ý (nếu chưa có)
-            if (!savedMemberNames.includes(name)) {
-                savedMemberNames.push(name);
-            }
-            
-            // Cập nhật hiển thị
             renderMemberList();
             
-            // Reset form
             nameInput.value = '';
             positionInput.value = '';
             nameInput.focus();
         }
         
-        // Hiển thị danh sách hội viên
         function renderMemberList() {
             const memberList = document.getElementById('memberList');
             const memberCount = document.getElementById('memberCount');
@@ -844,7 +921,6 @@
                 return;
             }
             
-            // Sắp xếp theo số chân
             const sortedMembers = [...members].sort((a, b) => a.position - b.position);
             
             memberList.innerHTML = sortedMembers.map(member => `
@@ -865,7 +941,6 @@
             memberCount.textContent = `Tổng: ${members.length} hội viên`;
         }
         
-        // Xóa hội viên
         function removeMember(memberId) {
             if (!confirm('Bạn có chắc chắn muốn xóa hội viên này?')) {
                 return;
@@ -875,13 +950,12 @@
             renderMemberList();
         }
         
-        // Sửa hội viên
         function editMember(memberId) {
             const member = members.find(m => m.id === memberId);
             if (!member) return;
             
             const newName = prompt('Sửa tên hội viên:', member.name);
-            if (newName === null) return; // Người dùng nhấn Cancel
+            if (newName === null) return;
             
             const trimmedName = newName.trim();
             if (!trimmedName) {
@@ -890,7 +964,7 @@
             }
             
             const newPosition = prompt('Sửa số chân:', member.position);
-            if (newPosition === null) return; // Người dùng nhấn Cancel
+            if (newPosition === null) return;
             
             const position = parseInt(newPosition);
             if (!position || position < 1) {
@@ -898,22 +972,12 @@
                 return;
             }
             
-            // THAY ĐỔI: KHÔNG KIỂM TRA TRÙNG SỐ CHÂN NỮA
-            // Cho phép số chân trùng nhau
-            
-            // Cập nhật thông tin
             member.name = trimmedName;
             member.position = position;
-            
-            // Cập nhật danh sách gợi ý
-            if (!savedMemberNames.includes(trimmedName)) {
-                savedMemberNames.push(trimmedName);
-            }
             
             renderMemberList();
         }
         
-        // Tìm kiếm hội viên
         function searchMembers() {
             const searchTerm = document.getElementById('memberSearch').value.toLowerCase().trim();
             
@@ -933,7 +997,6 @@
                 return;
             }
             
-            // Sắp xếp theo số chân
             const sortedMembers = [...filteredMembers].sort((a, b) => a.position - b.position);
             
             memberList.innerHTML = sortedMembers.map(member => `
@@ -952,22 +1015,22 @@
             `).join('');
         }
 
-        // Hiển thị modal thêm dây hụi
         function showAddModal() {
-            // Đặt ngày mặc định
+            if (!currentUser) {
+                alert('Vui lòng đăng nhập để tạo dây hụi');
+                return;
+            }
+
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('huiStartDate').value = today;
             
-            // Reset form
             document.getElementById('addHuiForm').reset();
             document.getElementById('huiStartDate').value = today;
             document.getElementById('huiTotalPeriods').value = 15;
             
-            // Reset danh sách hội viên
             members = [];
             renderMemberList();
             
-            // Tính toán mãn kỳ
             updateCalculatedDates();
             
             const modal = new bootstrap.Modal(document.getElementById('addHuiModal'));
@@ -976,7 +1039,11 @@
 
         // Thêm dây hụi mới
         async function addDayhui() {
-            // Lấy giá trị từ form
+            if (!currentUser) {
+                alert('Vui lòng đăng nhập để tạo dây hụi');
+                return;
+            }
+
             const huiName = document.getElementById('huiName').value.trim();
             const huiType = document.getElementById('huiType').value;
             const huiPeriod = document.getElementById('huiPeriod').value;
@@ -988,39 +1055,28 @@
             const huiStartDate = document.getElementById('huiStartDate').value;
             const huiBidTime = document.getElementById('huiBidTime').value;
 
-            // Validate dữ liệu
             if (!huiName || !huiType || !huiPeriod || !huiTotalPeriods || !huiAmount || !huiBidAmount || !huiStartDate) {
                 alert('Vui lòng điền đầy đủ các trường bắt buộc (*)');
                 return;
             }
 
-            // Kiểm tra số kỳ hợp lệ
             if (huiTotalPeriods < 1 || huiTotalPeriods > 100) {
                 alert('Số kỳ phải từ 1 đến 100');
                 return;
             }
 
-            // Kiểm tra danh sách hội viên
             if (members.length === 0) {
                 alert('Vui lòng thêm ít nhất một hội viên');
                 return;
             }
 
             try {
-                // Đảm bảo đã đăng nhập
-                const user = await ensureSignedIn();
-                if (!user) {
-                    alert('Không thể xác thực người dùng');
-                    return;
-                }
-
-                // Tạo dữ liệu dây hụi
                 const huiData = {
                     tendayhui: huiName,
                     loaiHui: huiType,
                     kyHan: huiPeriod,
                     tongSoKy: huiTotalPeriods,
-                    soKy: 0, // Bắt đầu từ kỳ 0
+                    soKy: 0,
                     tienHui: huiAmount,
                     tienThao: huiBidAmount,
                     tienThaoToiThieu: huiMinBid,
@@ -1038,19 +1094,16 @@
                     }))
                 };
 
-                // Thêm vào Firebase
-                const userDayhuiRef = database.ref('users/' + user.uid + '/dayhui');
+                const userDayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
                 const newHuiRef = await userDayhuiRef.push(huiData);
                 
                 console.log('✅ Đã tạo dây hụi mới với ID:', newHuiRef.key);
                 
-                // Đóng modal và thông báo thành công
                 const modal = bootstrap.Modal.getInstance(document.getElementById('addHuiModal'));
                 modal.hide();
                 
                 alert('Tạo dây hụi thành công!');
                 
-                // Tải lại danh sách
                 loadDayhuis();
                 
             } catch (error) {
@@ -1059,7 +1112,7 @@
             }
         }
 
-        // Các hàm placeholder cho các chức năng khác
+        // Các hàm placeholder
         function viewHuiDetail(huiId) {
             window.location.href = `dayhui-detail.html?id=${huiId}`;
         }
@@ -1074,32 +1127,22 @@
             }
         }
 
-        // Thêm sự kiện cho ô tìm kiếm
-        document.getElementById('memberSearch').addEventListener('input', searchMembers);
-
-        // Thêm sự kiện cho phím Enter khi thêm hội viên
-        document.getElementById('newMemberName').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addMember();
-            }
-        });
-
-        document.getElementById('newMemberPosition').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addMember();
-            }
-        });
-
-        // Thêm sự kiện tính toán ngày mãn kỳ
-        document.getElementById('huiStartDate').addEventListener('change', updateCalculatedDates);
-        document.getElementById('huiTotalPeriods').addEventListener('change', updateCalculatedDates);
-        document.getElementById('huiPeriod').addEventListener('change', updateCalculatedDates);
-
-        // Khởi tạo khi trang load
+        // Khởi tạo ứng dụng
         document.addEventListener('DOMContentLoaded', function() {
-            // Khởi tạo Firebase và tải dữ liệu
             if (initializeFirebase()) {
-                loadDayhuis();
+                checkAuthState();
+                
+                // Thêm sự kiện
+                document.getElementById('memberSearch').addEventListener('input', searchMembers);
+                document.getElementById('newMemberName').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') addMember();
+                });
+                document.getElementById('newMemberPosition').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') addMember();
+                });
+                document.getElementById('huiStartDate').addEventListener('change', updateCalculatedDates);
+                document.getElementById('huiTotalPeriods').addEventListener('change', updateCalculatedDates);
+                document.getElementById('huiPeriod').addEventListener('change', updateCalculatedDates);
             } else {
                 showError('Không thể kết nối đến cơ sở dữ liệu');
             }
