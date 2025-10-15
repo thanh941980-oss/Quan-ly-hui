@@ -35,7 +35,6 @@
             color: #2c3e50;
         }
         .form-group {
-            /* Đảm bảo có dòng này để định vị con mắt */
             position: relative;
             margin-bottom: 1rem;
         }
@@ -66,6 +65,10 @@
         .btn:hover {
             background-color: #2980b9;
         }
+        .btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
         .toggle-link {
             text-align: center;
             margin-top: 1rem;
@@ -77,9 +80,8 @@
             color: #c62828;
             font-size: 0.9rem;
             margin-top: 0.5rem;
+            min-height: 20px;
         }
-
-        /* CSS cho biểu tượng con mắt */
         .password-toggle {
             position: absolute;
             right: 15px;
@@ -90,108 +92,9 @@
             color: #999;
             font-size: 1.2rem;
         }
-        
-        /* CSS cho thông báo cập nhật - ÁP DỤNG CHO CẢ PC VÀ MOBILE */
-        .update-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 320px;
-            max-width: 90%;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            overflow: hidden;
-            animation: slideIn 0.3s ease-out;
-        }
-        .update-header {
-            background: #3498db;
-            color: white;
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .update-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
-        }
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .update-content {
-            padding: 15px;
-        }
-        .update-content ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-        .update-content li {
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        .update-content li:last-child {
-            margin-bottom: 0;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Responsive cho màn hình nhỏ (mobile) */
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-        
-            .form-row {
-                flex-direction: column;
-                gap: 10px;
-            }
-        
-            .btn {
-                width: 100%;
-                text-align: center;
-                margin-top: 10px;
-            }
-        
-            .container {
-                padding: 10px;
-            }
-        
-            h2 {
-                font-size: 1.2rem;
-                text-align: center;
-            }
-            
-            /* Điều chỉnh thông báo cho mobile */
-            .update-notification {
-                top: 10px;
-                right: 10px;
-                left: 10px;
-                width: auto;
-                max-width: none;
-            }
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -223,7 +126,7 @@
             </div>
             <div class="form-group">
                 <label for="registerPassword">Mật khẩu</label>
-                <input type="password" id="registerPassword" placeholder="Mật khẩu (6 chữ số)">
+                <input type="password" id="registerPassword" placeholder="Mật khẩu (tối thiểu 6 ký tự)">
                 <span class="password-toggle" onclick="togglePassword('registerPassword', this)">👁️</span>
             </div>
             <button id="registerBtn" class="btn">Đăng ký</button>
@@ -235,13 +138,13 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-          apiKey: "AIzaSyCYV8na-Az2LAgpl6QM2Tiwr6Gm9yhXQZ0",
-          authDomain: "quan-ly-hui-8ad1c.firebaseapp.com",
-          databaseURL: "https://quan-ly-hui-8ad1c-default-rtdb.asia-southeast1.firebasedatabase.app",
-          projectId: "quan-ly-hui-8ad1c",
-          storageBucket: "quan-ly-hui-8ad1c.firebasestorage.app",
-          messagingSenderId: "665511229865",
-          appId: "1:665511229865:web:fe44f814fff618e35e6cb8"
+            apiKey: "AIzaSyCYV8na-Az2LAgpl6QM2Tiwr6Gm9yhXQZ0",
+            authDomain: "quan-ly-hui-8ad1c.firebaseapp.com",
+            databaseURL: "https://quan-ly-hui-8ad1c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "quan-ly-hui-8ad1c",
+            storageBucket: "quan-ly-hui-8ad1c.firebasestorage.app",
+            messagingSenderId: "665511229865",
+            appId: "1:665511229865:web:fe44f814fff618e35e6cb8"
         };
 
         // Khởi tạo Firebase
@@ -252,16 +155,19 @@
         function showRegister() {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('registerForm').style.display = 'block';
+            clearErrors();
         }
+
         function showLogin() {
             document.getElementById('registerForm').style.display = 'none';
             document.getElementById('loginForm').style.display = 'block';
+            clearErrors();
         }
 
-        // Đóng thông báo cập nhật
-        document.getElementById('closeUpdateBtn').addEventListener('click', function() {
-            document.getElementById('updateNotification').style.display = 'none';
-        });
+        function clearErrors() {
+            document.getElementById('loginError').textContent = '';
+            document.getElementById('registerError').textContent = '';
+        }
 
         // Hàm ẩn/hiện mật khẩu
         function togglePassword(id, element) {
@@ -269,7 +175,6 @@
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
 
-            // Chuyển đổi biểu tượng
             if (type === 'password') {
                 element.textContent = '👁️';
             } else {
@@ -277,51 +182,140 @@
             }
         }
 
-        // Đăng nhập
-        document.getElementById('loginBtn').addEventListener('click', () => {
-            const email = document.getElementById('loginEmail').value;
+        // Xử lý sự kiện khi trang load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Đăng nhập với Enter key
+            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('loginBtn').click();
+                }
+            });
+
+            // Đăng ký với Enter key
+            document.getElementById('registerPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('registerBtn').click();
+                }
+            });
+
+            // Đăng nhập
+            document.getElementById('loginBtn').addEventListener('click', login);
+
+            // Đăng ký
+            document.getElementById('registerBtn').addEventListener('click', register);
+        });
+
+        // Hàm đăng nhập
+        function login() {
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             const loginBtn = document.getElementById('loginBtn');
             const loginError = document.getElementById('loginError');
-        
+
             if (!email || !password) {
                 loginError.textContent = 'Vui lòng nhập đầy đủ thông tin!';
                 return;
             }
-        
+
             // Hiển thị loading
             loginBtn.textContent = 'Đang đăng nhập...';
             loginBtn.disabled = true;
-        
+            loginError.textContent = '';
+
             auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
+                .then((userCredential) => {
+                    console.log('Đăng nhập thành công:', userCredential.user);
+                    // Chuyển hướng đến dashboard
                     window.location.href = 'dashboard.html';
                 })
                 .catch((error) => {
-                    loginError.textContent = 'Email hoặc mật khẩu không đúng!';
+                    console.error('Lỗi đăng nhập:', error);
+                    let errorMessage = 'Đăng nhập thất bại!';
+                    
+                    switch (error.code) {
+                        case 'auth/invalid-email':
+                            errorMessage = 'Email không hợp lệ!';
+                            break;
+                        case 'auth/user-disabled':
+                            errorMessage = 'Tài khoản đã bị vô hiệu hóa!';
+                            break;
+                        case 'auth/user-not-found':
+                            errorMessage = 'Tài khoản không tồn tại!';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMessage = 'Mật khẩu không đúng!';
+                            break;
+                        case 'auth/too-many-requests':
+                            errorMessage = 'Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau!';
+                            break;
+                    }
+                    
+                    loginError.textContent = errorMessage;
                     loginBtn.textContent = 'Đăng nhập';
                     loginBtn.disabled = false;
                 });
-        });
+        }
 
-        // Đăng ký
-        document.getElementById('registerBtn').addEventListener('click', () => {
-            const email = document.getElementById('registerEmail').value;
+        // Hàm đăng ký
+        function register() {
+            const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
+            const registerBtn = document.getElementById('registerBtn');
+            const registerError = document.getElementById('registerError');
 
             if (!email || !password) {
-                document.getElementById('registerError').textContent = 'Vui lòng nhập đầy đủ thông tin!';
+                registerError.textContent = 'Vui lòng nhập đầy đủ thông tin!';
                 return;
             }
 
+            if (password.length < 6) {
+                registerError.textContent = 'Mật khẩu phải có ít nhất 6 ký tự!';
+                return;
+            }
+
+            // Hiển thị loading
+            registerBtn.textContent = 'Đang đăng ký...';
+            registerBtn.disabled = true;
+            registerError.textContent = '';
+
             auth.createUserWithEmailAndPassword(email, password)
-                .then(() => {
+                .then((userCredential) => {
+                    console.log('Đăng ký thành công:', userCredential.user);
                     alert('Đăng ký thành công! Vui lòng đăng nhập.');
                     showLogin();
                 })
                 .catch((error) => {
-                    document.getElementById('registerError').textContent = 'Lỗi: ' + error.message;
+                    console.error('Lỗi đăng ký:', error);
+                    let errorMessage = 'Đăng ký thất bại!';
+                    
+                    switch (error.code) {
+                        case 'auth/email-already-in-use':
+                            errorMessage = 'Email đã được sử dụng!';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage = 'Email không hợp lệ!';
+                            break;
+                        case 'auth/operation-not-allowed':
+                            errorMessage = 'Tính năng đăng ký tạm thời bị tắt!';
+                            break;
+                        case 'auth/weak-password':
+                            errorMessage = 'Mật khẩu quá yếu!';
+                            break;
+                    }
+                    
+                    registerError.textContent = errorMessage;
+                    registerBtn.textContent = 'Đăng ký';
+                    registerBtn.disabled = false;
                 });
+        }
+
+        // Kiểm tra trạng thái đăng nhập
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('Người dùng đã đăng nhập:', user.email);
+            } else {
+                console.log('Chưa có người dùng đăng nhập');
+            }
         });
     </script>
 </body>
