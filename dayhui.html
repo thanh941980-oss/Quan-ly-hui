@@ -8,8 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <style>
-        /* Giữ nguyên CSS như trước */
+        /* CSS giữ nguyên như trước */
         :root {
             --primary-color: #3498db;
             --secondary-color: #2c3e50;
@@ -506,6 +507,7 @@
         let dayhuis = [];
         let members = []; // Danh sách hội viên
         let savedMemberNames = []; // Danh sách tên đã lưu để gợi ý
+        let currentUser = null;
 
         // Hàm khởi tạo Firebase
         function initializeFirebase() {
@@ -519,10 +521,26 @@
                 }
                 
                 database = firebase.database();
+                const auth = firebase.auth();
+                
                 console.log('✅ Firebase đã được khởi tạo thành công');
                 return true;
             } catch (error) {
                 console.error('❌ Lỗi khởi tạo Firebase:', error);
+                return false;
+            }
+        }
+
+        // Đăng nhập ẩn danh để có quyền truy cập
+        async function signInAnonymously() {
+            try {
+                const auth = firebase.auth();
+                const userCredential = await auth.signInAnonymously();
+                currentUser = userCredential.user;
+                console.log('✅ Đã đăng nhập ẩn danh với UID:', currentUser.uid);
+                return true;
+            } catch (error) {
+                console.error('❌ Lỗi đăng nhập ẩn danh:', error);
                 return false;
             }
         }
@@ -552,8 +570,19 @@
                 return;
             }
 
+            // Đảm bảo đã đăng nhập
+            if (!currentUser) {
+                const signedIn = await signInAnonymously();
+                if (!signedIn) {
+                    showError('Không thể đăng nhập vào Firebase');
+                    return;
+                }
+            }
+
             try {
-                const snapshot = await database.ref('dayhui').once('value');
+                // Sử dụng đường dẫn theo rules: users/{userId}/dayhui
+                const userDayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
+                const snapshot = await userDayhuiRef.once('value');
                 dayhuis = [];
                 
                 if (snapshot.exists()) {
@@ -762,12 +791,8 @@
                 return;
             }
             
-            // Kiểm tra xem số chân đã tồn tại chưa
-            if (members.some(member => member.position === position)) {
-                alert(`Số chân ${position} đã được sử dụng. Vui lòng chọn số chân khác.`);
-                positionInput.focus();
-                return;
-            }
+            // THAY ĐỔI: KHÔNG KIỂM TRA TRÙNG SỐ CHÂN NỮA
+            // Cho phép số chân trùng nhau
             
             // Thêm hội viên vào danh sách
             members.push({
@@ -855,11 +880,8 @@
                 return;
             }
             
-            // Kiểm tra xem số chân đã tồn tại chưa (trừ chính nó)
-            if (members.some(m => m.position === position && m.id !== memberId)) {
-                alert(`Số chân ${position} đã được sử dụng. Vui lòng chọn số chân khác.`);
-                return;
-            }
+            // THAY ĐỔI: KHÔNG KIỂM TRA TRÙNG SỐ CHÂN NỮA
+            // Cho phép số chân trùng nhau
             
             // Cập nhật thông tin
             member.name = trimmedName;
@@ -979,7 +1001,9 @@
             }
 
             try {
-                const newHuiRef = database.ref('dayhui').push();
+                // Sử dụng đường dẫn theo rules: users/{userId}/dayhui
+                const userDayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
+                const newHuiRef = userDayhuiRef.push();
                 await newHuiRef.set(formData);
                 
                 console.log('✅ Đã tạo dây hụi mới:', formData.tendayhui);
@@ -999,10 +1023,31 @@
             }
         }
 
+        // Xóa dây hụi
+        async function deleteHui(huiId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa dây hụi này? Hành động này không thể hoàn tác!')) {
+                return;
+            }
+
+            try {
+                await database.ref('users/' + currentUser.uid + '/dayhui/' + huiId).remove();
+                alert('✅ Xóa dây hụi thành công!');
+                loaddayhuis();
+            } catch (error) {
+                console.error('❌ Lỗi khi xóa dây hụi:', error);
+                alert('❌ Có lỗi khi xóa dây hụi: ' + error.message);
+            }
+        }
+
         // Xử lý sự kiện khi trang được tải
         document.addEventListener('DOMContentLoaded', function() {
             // Khởi tạo Firebase và tải dữ liệu
-            loaddayhuis();
+            initializeFirebase();
+            
+            // Đăng nhập ẩn danh trước khi tải dữ liệu
+            signInAnonymously().then(() => {
+                loaddayhuis();
+            });
             
             // Thiết lập sự kiện cho các input tính toán
             document.getElementById('huiStartDate').addEventListener('change', updateCalculatedDates);
@@ -1037,21 +1082,11 @@
 
         // Các hàm placeholder cho các chức năng khác
         function viewHuiDetail(huiId) {
-            alert('Xem chi tiết dây hụi: ' + huiId);
-            // Chuyển hướng đến trang chi tiết
-            window.location.href = `hui-detail.html?id=${huiId}`;
+            window.location.href = `dayhui-detail.html?id=${huiId}`;
         }
 
         function editHui(huiId) {
-            alert('Sửa dây hụi: ' + huiId);
-            // Mở modal chỉnh sửa
-        }
-
-        function deleteHui(huiId) {
-            if (confirm('Bạn có chắc chắn muốn xóa dây hụi này?')) {
-                alert('Xóa dây hụi: ' + huiId);
-                // Thực hiện xóa
-            }
+            alert('Tính năng sửa dây hụi sẽ được phát triển sau!');
         }
     </script>
 </body>
