@@ -494,119 +494,132 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyCYV8na-Az2LAgpl6QM2Tiwr6Gm9yhXQZ0",
-            authDomain: "quan-ly-hui-8ad1c.firebaseapp.com",
-            databaseURL: "https://quan-ly-hui-8ad1c-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "quan-ly-hui-8ad1c",
-            storageBucket: "quan-ly-hui-8ad1c.firebasestorage.app",
-            messagingSenderId: "665511229865",
-            appId: "1:665511229865:web:fe44f814fff618e35e6cb8"
-        };
+        apiKey: "AIzaSyCYV8na-Az2LAgpl6QM2Tiwr6Gm9yhXQZ0",
+        authDomain: "quan-ly-hui-8ad1c.firebaseapp.com",
+        databaseURL: "https://quan-ly-hui-8ad1c-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "quan-ly-hui-8ad1c",
+        storageBucket: "quan-ly-hui-8ad1c.firebasestorage.app",
+        messagingSenderId: "665511229865",
+        appId: "1:665511229865:web:fe44f814fff618e35e6cb8"
+    };
 
-        let database;
-        let dayhuis = [];
-        let members = []; // Danh sách hội viên
-        let savedMemberNames = []; // Danh sách tên đã lưu để gợi ý
-        let currentUser = null;
+    let database;
+    let dayhuis = [];
+    let members = []; // Danh sách hội viên
+    let savedMemberNames = []; // Danh sách tên đã lưu để gợi ý
+    let currentUser = null;
 
-        // Hàm khởi tạo Firebase
-        function initializeFirebase() {
-            try {
-                if (typeof firebase === 'undefined') {
-                    throw new Error('Firebase SDK chưa được tải');
-                }
-
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                
-                database = firebase.database();
-                const auth = firebase.auth();
-                
-                console.log('✅ Firebase đã được khởi tạo thành công');
-                return true;
-            } catch (error) {
-                console.error('❌ Lỗi khởi tạo Firebase:', error);
-                return false;
+    // Hàm khởi tạo Firebase
+    function initializeFirebase() {
+        try {
+            if (typeof firebase === 'undefined') {
+                throw new Error('Firebase SDK chưa được tải');
             }
-        }
 
-        // Đăng nhập ẩn danh để có quyền truy cập
-        async function signInAnonymously() {
-            try {
-                const auth = firebase.auth();
-                const userCredential = await auth.signInAnonymously();
-                currentUser = userCredential.user;
-                console.log('✅ Đã đăng nhập ẩn danh với UID:', currentUser.uid);
-                return true;
-            } catch (error) {
-                console.error('❌ Lỗi đăng nhập ẩn danh:', error);
-                return false;
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
             }
-        }
-
-        // Hiển thị trạng thái
-        function showState(state) {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('errorState').style.display = 'none';
-            document.getElementById('successState').style.display = 'none';
             
-            if (state === 'loading') {
-                document.getElementById('loadingState').style.display = 'block';
-            } else if (state === 'error') {
-                document.getElementById('errorState').style.display = 'block';
-            } else if (state === 'success') {
-                document.getElementById('successState').style.display = 'block';
-            }
+            database = firebase.database();
+            console.log('✅ Firebase đã được khởi tạo thành công');
+            return true;
+        } catch (error) {
+            console.error('❌ Lỗi khởi tạo Firebase:', error);
+            return false;
+        }
+    }
+
+    // Đăng nhập ẩn danh để có quyền truy cập
+    async function signInAnonymously() {
+        try {
+            const auth = firebase.auth();
+            const userCredential = await auth.signInAnonymously();
+            currentUser = userCredential.user;
+            console.log('✅ Đã đăng nhập ẩn danh với UID:', currentUser.uid);
+            return currentUser;
+        } catch (error) {
+            console.error('❌ Lỗi đăng nhập ẩn danh:', error);
+            return null;
+        }
+    }
+
+    // Hàm đảm bảo đã đăng nhập trước khi thao tác với Firebase
+    async function ensureSignedIn() {
+        if (currentUser) {
+            return currentUser;
+        }
+        
+        // Nếu chưa đăng nhập, thử đăng nhập
+        const auth = firebase.auth();
+        if (auth.currentUser) {
+            currentUser = auth.currentUser;
+            return currentUser;
+        }
+        
+        // Đăng nhập ẩn danh
+        return await signInAnonymously();
+    }
+
+    // Hiển thị trạng thái
+    function showState(state) {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('errorState').style.display = 'none';
+        document.getElementById('successState').style.display = 'none';
+        
+        if (state === 'loading') {
+            document.getElementById('loadingState').style.display = 'block';
+        } else if (state === 'error') {
+            document.getElementById('errorState').style.display = 'block';
+        } else if (state === 'success') {
+            document.getElementById('successState').style.display = 'block';
+        }
+    }
+
+    // Tải danh sách dây hụi
+    async function loaddayhuis() {
+        console.log('🔄 Đang tải dữ liệu dây hụi...');
+        showState('loading');
+
+        if (!initializeFirebase()) {
+            showError('Không thể khởi tạo Firebase');
+            return;
         }
 
-        // Tải danh sách dây hụi
-        async function loaddayhuis() {
-            console.log('🔄 Đang tải dữ liệu dây hụi...');
-            showState('loading');
-
-            if (!initializeFirebase()) {
-                showError('Không thể khởi tạo Firebase');
+        try {
+            // Đảm bảo đã đăng nhập
+            const user = await ensureSignedIn();
+            if (!user) {
+                showError('Không thể đăng nhập vào Firebase');
                 return;
             }
 
-            // Đảm bảo đã đăng nhập
-            if (!currentUser) {
-                const signedIn = await signInAnonymously();
-                if (!signedIn) {
-                    showError('Không thể đăng nhập vào Firebase');
-                    return;
-                }
-            }
-
-            try {
-                // Sử dụng đường dẫn theo rules: users/{userId}/dayhui
-                const userDayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
-                const snapshot = await userDayhuiRef.once('value');
-                dayhuis = [];
-                
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    Object.keys(data).forEach(key => {
-                        dayhuis.push({
-                            id: key,
-                            ...data[key]
-                        });
+            // Sử dụng đường dẫn theo rules: users/{userId}/dayhui
+            const userDayhuiRef = database.ref('users/' + user.uid + '/dayhui');
+            const snapshot = await userDayhuiRef.once('value');
+            dayhuis = [];
+            
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                Object.keys(data).forEach(key => {
+                    dayhuis.push({
+                        id: key,
+                        ...data[key]
                     });
-                    console.log(`✅ Đã tải ${dayhuis.length} dây hụi`);
-                } else {
-                    console.log('ℹ️ Chưa có dữ liệu dây hụi');
-                }
-
-                renderdayhuis();
-                updateStatistics();
-                showState('success');
-                
-            } catch (error) {
-                console.error('❌ Lỗi khi tải dữ liệu:', error);
-                showError('Không thể tải dữ liệu từ Firebase', error);
+                });
+                console.log(`✅ Đã tải ${dayhuis.length} dây hụi`);
+            } else {
+                console.log('ℹ️ Chưa có dữ liệu dây hụi');
             }
+
+            renderdayhuis();
+            updateStatistics();
+            showState('success');
+            
+        } catch (error) {
+            console.error('❌ Lỗi khi tải dữ liệu:', error);
+            showError('Không thể tải dữ liệu từ Firebase', error);
         }
+    }
 
         // Hiển thị danh sách dây hụi
         function renderdayhuis() {
@@ -957,128 +970,133 @@
         }
 
         // Thêm dây hụi mới
-        async function adddayhui() {
-            const formData = {
-                tendayhui: document.getElementById('huiName').value.trim(),
-                loaiHui: document.getElementById('huiType').value,
-                kyHan: document.getElementById('huiPeriod').value,
-                tongSoKy: parseInt(document.getElementById('huiTotalPeriods').value),
-                tienHui: parseInt(document.getElementById('huiAmount').value),
-                tienThao: parseInt(document.getElementById('huiBidAmount').value),
-                thamToiThieu: parseInt(document.getElementById('huiMinBid').value) || 0,
-                kieuThuThao: document.getElementById('huiBidType').value,
-                ngayMoHui: document.getElementById('huiStartDate').value,
-                manKyDuKien: document.getElementById('huiEndDate').value,
-                gioDau: document.getElementById('huiBidTime').value,
-                trangThai: 'cho_bat_dau',
-                soKy: 0,
-                members: members, // Thêm danh sách hội viên
-                createdAt: new Date().toISOString()
-            };
+        const firebaseConfig = {
+        apiKey: "AIzaSyCYV8na-Az2LAgpl6QM2Tiwr6Gm9yhXQZ0",
+        authDomain: "quan-ly-hui-8ad1c.firebaseapp.com",
+        databaseURL: "https://quan-ly-hui-8ad1c-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "quan-ly-hui-8ad1c",
+        storageBucket: "quan-ly-hui-8ad1c.firebasestorage.app",
+        messagingSenderId: "665511229865",
+        appId: "1:665511229865:web:fe44f814fff618e35e6cb8"
+    };
 
-            // Kiểm tra dữ liệu
-            if (!formData.tendayhui) {
-                alert('Vui lòng nhập tên dây hụi');
-                document.getElementById('huiName').focus();
-                return;
+    let database;
+    let dayhuis = [];
+    let members = []; // Danh sách hội viên
+    let savedMemberNames = []; // Danh sách tên đã lưu để gợi ý
+    let currentUser = null;
+
+    // Hàm khởi tạo Firebase
+    function initializeFirebase() {
+        try {
+            if (typeof firebase === 'undefined') {
+                throw new Error('Firebase SDK chưa được tải');
             }
 
-            if (!formData.loaiHui) {
-                alert('Vui lòng chọn loại hụi');
-                document.getElementById('huiType').focus();
-                return;
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
             }
+            
+            database = firebase.database();
+            console.log('✅ Firebase đã được khởi tạo thành công');
+            return true;
+        } catch (error) {
+            console.error('❌ Lỗi khởi tạo Firebase:', error);
+            return false;
+        }
+    }
 
-            if (!formData.kyHan) {
-                alert('Vui lòng chọn kỳ hạn');
-                document.getElementById('huiPeriod').focus();
-                return;
-            }
+    // Đăng nhập ẩn danh để có quyền truy cập
+    async function signInAnonymously() {
+        try {
+            const auth = firebase.auth();
+            const userCredential = await auth.signInAnonymously();
+            currentUser = userCredential.user;
+            console.log('✅ Đã đăng nhập ẩn danh với UID:', currentUser.uid);
+            return currentUser;
+        } catch (error) {
+            console.error('❌ Lỗi đăng nhập ẩn danh:', error);
+            return null;
+        }
+    }
 
-            if (members.length === 0) {
-                alert('Vui lòng thêm ít nhất một hội viên');
-                return;
-            }
+    // Hàm đảm bảo đã đăng nhập trước khi thao tác với Firebase
+    async function ensureSignedIn() {
+        if (currentUser) {
+            return currentUser;
+        }
+        
+        // Nếu chưa đăng nhập, thử đăng nhập
+        const auth = firebase.auth();
+        if (auth.currentUser) {
+            currentUser = auth.currentUser;
+            return currentUser;
+        }
+        
+        // Đăng nhập ẩn danh
+        return await signInAnonymously();
+    }
 
-            try {
-                // Sử dụng đường dẫn theo rules: users/{userId}/dayhui
-                const userDayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
-                const newHuiRef = userDayhuiRef.push();
-                await newHuiRef.set(formData);
-                
-                console.log('✅ Đã tạo dây hụi mới:', formData.tendayhui);
-                
-                // Đóng modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('addHuiModal'));
-                modal.hide();
-                
-                // Tải lại danh sách
-                loaddayhuis();
-                
-                alert('✅ Đã tạo dây hụi thành công!');
-                
-            } catch (error) {
-                console.error('❌ Lỗi khi tạo dây hụi:', error);
-                alert('❌ Lỗi khi tạo dây hụi: ' + error.message);
-            }
+    // Hiển thị trạng thái
+    function showState(state) {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('errorState').style.display = 'none';
+        document.getElementById('successState').style.display = 'none';
+        
+        if (state === 'loading') {
+            document.getElementById('loadingState').style.display = 'block';
+        } else if (state === 'error') {
+            document.getElementById('errorState').style.display = 'block';
+        } else if (state === 'success') {
+            document.getElementById('successState').style.display = 'block';
+        }
+    }
+
+    // Tải danh sách dây hụi
+    async function loaddayhuis() {
+        console.log('🔄 Đang tải dữ liệu dây hụi...');
+        showState('loading');
+
+        if (!initializeFirebase()) {
+            showError('Không thể khởi tạo Firebase');
+            return;
         }
 
-        // Xóa dây hụi
-        async function deleteHui(huiId) {
-            if (!confirm('Bạn có chắc chắn muốn xóa dây hụi này? Hành động này không thể hoàn tác!')) {
+        try {
+            // Đảm bảo đã đăng nhập
+            const user = await ensureSignedIn();
+            if (!user) {
+                showError('Không thể đăng nhập vào Firebase');
                 return;
             }
 
-            try {
-                await database.ref('users/' + currentUser.uid + '/dayhui/' + huiId).remove();
-                alert('✅ Xóa dây hụi thành công!');
-                loaddayhuis();
-            } catch (error) {
-                console.error('❌ Lỗi khi xóa dây hụi:', error);
-                alert('❌ Có lỗi khi xóa dây hụi: ' + error.message);
+            // Sử dụng đường dẫn theo rules: users/{userId}/dayhui
+            const userDayhuiRef = database.ref('users/' + user.uid + '/dayhui');
+            const snapshot = await userDayhuiRef.once('value');
+            dayhuis = [];
+            
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                Object.keys(data).forEach(key => {
+                    dayhuis.push({
+                        id: key,
+                        ...data[key]
+                    });
+                });
+                console.log(`✅ Đã tải ${dayhuis.length} dây hụi`);
+            } else {
+                console.log('ℹ️ Chưa có dữ liệu dây hụi');
             }
-        }
 
-        // Xử lý sự kiện khi trang được tải
-        document.addEventListener('DOMContentLoaded', function() {
-            // Khởi tạo Firebase và tải dữ liệu
-            initializeFirebase();
+            renderdayhuis();
+            updateStatistics();
+            showState('success');
             
-            // Đăng nhập ẩn danh trước khi tải dữ liệu
-            signInAnonymously().then(() => {
-                loaddayhuis();
-            });
-            
-            // Thiết lập sự kiện cho các input tính toán
-            document.getElementById('huiStartDate').addEventListener('change', updateCalculatedDates);
-            document.getElementById('huiTotalPeriods').addEventListener('input', updateCalculatedDates);
-            document.getElementById('huiPeriod').addEventListener('change', updateCalculatedDates);
-            
-            // Thiết lập sự kiện tìm kiếm hội viên
-            document.getElementById('memberSearch').addEventListener('input', searchMembers);
-            
-            // Thiết lập sự kiện Enter để thêm hội viên
-            document.getElementById('newMemberName').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addMember();
-                }
-            });
-            
-            document.getElementById('newMemberPosition').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addMember();
-                }
-            });
-        });
-
-        // Hàm xử lý lỗi
-        function showError(message, error = null) {
-            console.error(message, error);
-            document.getElementById('errorMessage').textContent = message;
-            showState('error');
+        } catch (error) {
+            console.error('❌ Lỗi khi tải dữ liệu:', error);
+            showError('Không thể tải dữ liệu từ Firebase', error);
         }
+    }
 
         // Các hàm placeholder cho các chức năng khác
         function viewHuiDetail(huiId) {
@@ -1091,3 +1109,4 @@
     </script>
 </body>
 </html>
+
