@@ -160,6 +160,70 @@
             padding: 20px;
             margin-bottom: 20px;
         }
+        
+        /* CSS mới cho phần danh sách hội viên */
+        .member-list-section {
+            margin-top: 20px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+        }
+        
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+        
+        .member-item:last-child {
+            border-bottom: none;
+        }
+        
+        .member-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .member-position {
+            width: 60px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .member-actions {
+            width: 80px;
+            text-align: right;
+        }
+        
+        .member-actions .btn {
+            padding: 2px 6px;
+            font-size: 0.75rem;
+        }
+        
+        .add-member-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .add-member-form input {
+            font-size: 0.85rem;
+        }
+        
+        .member-count {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+        
+        .search-member {
+            margin-bottom: 10px;
+        }
+        
+        .search-member input {
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
@@ -369,7 +433,6 @@
                             </div>
                         </div>
                         
-                        <!-- CHỈ GIỮ LẠI MÃN KỲ (DỰ KIẾN) -->
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -377,14 +440,42 @@
                                     <input type="date" class="form-control" id="huiEndDate" readonly>
                                 </div>
                             </div>
-                       <!-- </div> 
-
-                        <div class="row"> -->
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Giờ đấu</label>
                                     <input type="time" class="form-control" id="huiBidTime" value="11:00">
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- PHẦN DANH SÁCH HỘI VIÊN MỚI -->
+                        <div class="member-list-section">
+                            <h6 class="mb-3">Danh sách hội viên</h6>
+                            
+                            <!-- Ô tìm kiếm hội viên -->
+                            <div class="search-member">
+                                <input type="text" class="form-control" id="memberSearch" 
+                                       placeholder="Tìm kiếm hội viên...">
+                            </div>
+                            
+                            <!-- Form thêm hội viên mới -->
+                            <div class="add-member-form">
+                                <input type="text" class="form-control" id="newMemberName" 
+                                       placeholder="Tên hội viên">
+                                <input type="number" class="form-control" id="newMemberPosition" 
+                                       placeholder="Số chân" min="1">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="addMember()">
+                                    <i class="fas fa-plus"></i> Thêm
+                                </button>
+                            </div>
+                            
+                            <!-- Danh sách hội viên -->
+                            <div id="memberList" class="mb-3">
+                                <!-- Danh sách hội viên sẽ được hiển thị ở đây -->
+                            </div>
+                            
+                            <div class="member-count" id="memberCount">
+                                Tổng: 0 hội viên
                             </div>
                         </div>
                     </form>
@@ -413,6 +504,8 @@
 
         let database;
         let dayhuis = [];
+        let members = []; // Danh sách hội viên
+        let savedMemberNames = []; // Danh sách tên đã lưu để gợi ý
 
         // Hàm khởi tạo Firebase
         function initializeFirebase() {
@@ -647,6 +740,178 @@
             }
         }
 
+        // ========== QUẢN LÝ DANH SÁCH HỘI VIÊN ==========
+        
+        // Thêm hội viên mới
+        function addMember() {
+            const nameInput = document.getElementById('newMemberName');
+            const positionInput = document.getElementById('newMemberPosition');
+            
+            const name = nameInput.value.trim();
+            const position = parseInt(positionInput.value);
+            
+            if (!name) {
+                alert('Vui lòng nhập tên hội viên');
+                nameInput.focus();
+                return;
+            }
+            
+            if (!position || position < 1) {
+                alert('Vui lòng nhập số chân hợp lệ');
+                positionInput.focus();
+                return;
+            }
+            
+            // Kiểm tra xem số chân đã tồn tại chưa
+            if (members.some(member => member.position === position)) {
+                alert(`Số chân ${position} đã được sử dụng. Vui lòng chọn số chân khác.`);
+                positionInput.focus();
+                return;
+            }
+            
+            // Thêm hội viên vào danh sách
+            members.push({
+                id: Date.now().toString(), // ID tạm thời
+                name: name,
+                position: position
+            });
+            
+            // Lưu tên vào danh sách gợi ý (nếu chưa có)
+            if (!savedMemberNames.includes(name)) {
+                savedMemberNames.push(name);
+            }
+            
+            // Cập nhật hiển thị
+            renderMemberList();
+            
+            // Reset form
+            nameInput.value = '';
+            positionInput.value = '';
+            nameInput.focus();
+        }
+        
+        // Hiển thị danh sách hội viên
+        function renderMemberList() {
+            const memberList = document.getElementById('memberList');
+            const memberCount = document.getElementById('memberCount');
+            
+            if (members.length === 0) {
+                memberList.innerHTML = '<div class="text-muted text-center py-3">Chưa có hội viên nào</div>';
+                memberCount.textContent = 'Tổng: 0 hội viên';
+                return;
+            }
+            
+            // Sắp xếp theo số chân
+            const sortedMembers = [...members].sort((a, b) => a.position - b.position);
+            
+            memberList.innerHTML = sortedMembers.map(member => `
+                <div class="member-item">
+                    <div class="member-name">${member.name}</div>
+                    <div class="member-position">${member.position}</div>
+                    <div class="member-actions">
+                        <button class="btn btn-sm btn-outline-warning" onclick="editMember('${member.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeMember('${member.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            memberCount.textContent = `Tổng: ${members.length} hội viên`;
+        }
+        
+        // Xóa hội viên
+        function removeMember(memberId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa hội viên này?')) {
+                return;
+            }
+            
+            members = members.filter(member => member.id !== memberId);
+            renderMemberList();
+        }
+        
+        // Sửa hội viên
+        function editMember(memberId) {
+            const member = members.find(m => m.id === memberId);
+            if (!member) return;
+            
+            const newName = prompt('Sửa tên hội viên:', member.name);
+            if (newName === null) return; // Người dùng nhấn Cancel
+            
+            const trimmedName = newName.trim();
+            if (!trimmedName) {
+                alert('Tên không được để trống');
+                return;
+            }
+            
+            const newPosition = prompt('Sửa số chân:', member.position);
+            if (newPosition === null) return; // Người dùng nhấn Cancel
+            
+            const position = parseInt(newPosition);
+            if (!position || position < 1) {
+                alert('Số chân không hợp lệ');
+                return;
+            }
+            
+            // Kiểm tra xem số chân đã tồn tại chưa (trừ chính nó)
+            if (members.some(m => m.position === position && m.id !== memberId)) {
+                alert(`Số chân ${position} đã được sử dụng. Vui lòng chọn số chân khác.`);
+                return;
+            }
+            
+            // Cập nhật thông tin
+            member.name = trimmedName;
+            member.position = position;
+            
+            // Cập nhật danh sách gợi ý
+            if (!savedMemberNames.includes(trimmedName)) {
+                savedMemberNames.push(trimmedName);
+            }
+            
+            renderMemberList();
+        }
+        
+        // Tìm kiếm hội viên
+        function searchMembers() {
+            const searchTerm = document.getElementById('memberSearch').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                renderMemberList();
+                return;
+            }
+            
+            const filteredMembers = members.filter(member => 
+                member.name.toLowerCase().includes(searchTerm)
+            );
+            
+            const memberList = document.getElementById('memberList');
+            
+            if (filteredMembers.length === 0) {
+                memberList.innerHTML = '<div class="text-muted text-center py-3">Không tìm thấy hội viên nào</div>';
+                return;
+            }
+            
+            // Sắp xếp theo số chân
+            const sortedMembers = [...filteredMembers].sort((a, b) => a.position - b.position);
+            
+            memberList.innerHTML = sortedMembers.map(member => `
+                <div class="member-item">
+                    <div class="member-name">${member.name}</div>
+                    <div class="member-position">${member.position}</div>
+                    <div class="member-actions">
+                        <button class="btn btn-sm btn-outline-warning" onclick="editMember('${member.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeMember('${member.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         // Hiển thị modal thêm dây hụi
         function showAddModal() {
             // Đặt ngày mặc định
@@ -657,6 +922,10 @@
             document.getElementById('addHuiForm').reset();
             document.getElementById('huiStartDate').value = today;
             document.getElementById('huiTotalPeriods').value = 15;
+            
+            // Reset danh sách hội viên
+            members = [];
+            renderMemberList();
             
             // Tính toán mãn kỳ
             updateCalculatedDates();
@@ -677,77 +946,113 @@
                 thamToiThieu: parseInt(document.getElementById('huiMinBid').value) || 0,
                 kieuThuThao: document.getElementById('huiBidType').value,
                 ngayMoHui: document.getElementById('huiStartDate').value,
-                manKyDuKien: document.getElementById('huiEndDate').value, // Lấy từ mãn kỳ dự kiến
-                gioDau: document.getElementById('huiBidTime').value + ':00',
-                soKy: 0, // Số kỳ đã qua
+                manKyDuKien: document.getElementById('huiEndDate').value,
+                gioDau: document.getElementById('huiBidTime').value,
                 trangThai: 'cho_bat_dau',
-                ngayTao: new Date().toISOString()
+                soKy: 0,
+                members: members, // Thêm danh sách hội viên
+                createdAt: new Date().toISOString()
             };
 
-            // Validate
-            if (!formData.tendayhui || !formData.loaiHui || !formData.kyHan) {
-                alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+            // Kiểm tra dữ liệu
+            if (!formData.tendayhui) {
+                alert('Vui lòng nhập tên dây hụi');
+                document.getElementById('huiName').focus();
                 return;
             }
 
-            if (!initializeFirebase()) {
-                alert('❌ Lỗi kết nối Firebase. Vui lòng thử lại!');
+            if (!formData.loaiHui) {
+                alert('Vui lòng chọn loại hụi');
+                document.getElementById('huiType').focus();
+                return;
+            }
+
+            if (!formData.kyHan) {
+                alert('Vui lòng chọn kỳ hạn');
+                document.getElementById('huiPeriod').focus();
+                return;
+            }
+
+            if (members.length === 0) {
+                alert('Vui lòng thêm ít nhất một hội viên');
                 return;
             }
 
             try {
-                await database.ref('dayhui').push(formData);
-                alert('✅ Tạo dây hụi thành công!');
+                const newHuiRef = database.ref('dayhui').push();
+                await newHuiRef.set(formData);
                 
+                console.log('✅ Đã tạo dây hụi mới:', formData.tendayhui);
+                
+                // Đóng modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('addHuiModal'));
                 modal.hide();
+                
+                // Tải lại danh sách
                 loaddayhuis();
+                
+                alert('✅ Đã tạo dây hụi thành công!');
                 
             } catch (error) {
                 console.error('❌ Lỗi khi tạo dây hụi:', error);
-                alert('❌ Có lỗi khi tạo dây hụi: ' + error.message);
+                alert('❌ Lỗi khi tạo dây hụi: ' + error.message);
             }
         }
 
-        // Xóa dây hụi
-        async function deleteHui(huiId) {
-            if (!confirm('Bạn có chắc chắn muốn xóa dây hụi này? Hành động này không thể hoàn tác!')) {
-                return;
-            }
-
-            try {
-                await database.ref('dayhui/' + huiId).remove();
-                alert('✅ Xóa dây hụi thành công!');
-                loaddayhuis();
-            } catch (error) {
-                console.error('❌ Lỗi khi xóa dây hụi:', error);
-                alert('❌ Có lỗi khi xóa dây hụi: ' + error.message);
-            }
-        }
-
-        // Xem chi tiết dây hụi
-        function viewHuiDetail(huiId) {
-            window.location.href = `dayhui-detail.html?id=${huiId}`;
-        }
-
-        // Sửa dây hụi
-        function editHui(huiId) {
-            alert('Tính năng sửa dây hụi sẽ được phát triển sau!');
-        }
-
-        // Gắn sự kiện cho các input để tính toán tự động
+        // Xử lý sự kiện khi trang được tải
         document.addEventListener('DOMContentLoaded', function() {
-            // Gắn sự kiện change cho các input cần tính toán
+            // Khởi tạo Firebase và tải dữ liệu
+            loaddayhuis();
+            
+            // Thiết lập sự kiện cho các input tính toán
             document.getElementById('huiStartDate').addEventListener('change', updateCalculatedDates);
-            document.getElementById('huiTotalPeriods').addEventListener('change', updateCalculatedDates);
+            document.getElementById('huiTotalPeriods').addEventListener('input', updateCalculatedDates);
             document.getElementById('huiPeriod').addEventListener('change', updateCalculatedDates);
             
-            // Gắn sự kiện input để tính toán real-time
-            document.getElementById('huiTotalPeriods').addEventListener('input', updateCalculatedDates);
+            // Thiết lập sự kiện tìm kiếm hội viên
+            document.getElementById('memberSearch').addEventListener('input', searchMembers);
             
-            console.log('🚀 Ứng dụng đang khởi động...');
-            loaddayhuis();
+            // Thiết lập sự kiện Enter để thêm hội viên
+            document.getElementById('newMemberName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addMember();
+                }
+            });
+            
+            document.getElementById('newMemberPosition').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addMember();
+                }
+            });
         });
+
+        // Hàm xử lý lỗi
+        function showError(message, error = null) {
+            console.error(message, error);
+            document.getElementById('errorMessage').textContent = message;
+            showState('error');
+        }
+
+        // Các hàm placeholder cho các chức năng khác
+        function viewHuiDetail(huiId) {
+            alert('Xem chi tiết dây hụi: ' + huiId);
+            // Chuyển hướng đến trang chi tiết
+            window.location.href = `hui-detail.html?id=${huiId}`;
+        }
+
+        function editHui(huiId) {
+            alert('Sửa dây hụi: ' + huiId);
+            // Mở modal chỉnh sửa
+        }
+
+        function deleteHui(huiId) {
+            if (confirm('Bạn có chắc chắn muốn xóa dây hụi này?')) {
+                alert('Xóa dây hụi: ' + huiId);
+                // Thực hiện xóa
+            }
+        }
     </script>
 </body>
 </html>
