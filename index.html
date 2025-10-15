@@ -251,12 +251,12 @@
                     // Login successful
                     const user = userCredential.user;
                     showMessage('Đăng nhập thành công!', 'success');
-                    
+                    window.location.href = 'dashboard.html';
                     // Redirect to dashboard after a short delay
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1000);
-                })
+               //     setTimeout(() => {
+              //          window.location.href = 'dashboard.html';
+              //      }, 1000);
+              //  })
                 .catch((error) => {
                     // Handle errors
                     const errorCode = error.code;
