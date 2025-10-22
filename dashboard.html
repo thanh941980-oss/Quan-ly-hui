@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Hụi - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --success-color: #2ecc71;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .sidebar {
+            background-color: var(--secondary-color);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar .nav-link {
+            color: #bdc3c7;
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .stat-card .label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .recent-activity {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .recent-activity li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .recent-activity li:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .table th {
+            background-color: var(--light-color);
+        }
+        
+        .badge-success {
+            background-color: var(--success-color);
+        }
+        
+        .badge-warning {
+            background-color: #f39c12;
+        }
+        
+        .badge-danger {
+            background-color: var(--accent-color);
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #bdc3c7;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            cursor: pointer; /* Thêm dòng này */
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1); /* Tăng shadow khi hover */
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <div class="text-center mb-4">
+                    <h3><i class="fas fa-hand-holding-usd"></i> Quản Lý Hụi</h3>
+                </div>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-tab="dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dayhui.html">
+                            <i class="fas fa-list"></i> Danh sách dây hụi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="hoivien.html">
+                            <i class="fas fa-users"></i> Danh sách hội viên
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="donghot">
+                            <i class="fas fa-money-bill-wave"></i> Đóng hốt hụi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="chuhui.html">
+                            <i class="fas fa-user-tie"></i> Chủ hụi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="tinhtien">
+                            <i class="fas fa-calculator"></i> Tính tiền hội viên
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="cono">
+                            <i class="fas fa-file-invoice-dollar"></i> Tiền còn nợ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="baocao">
+                            <i class="fas fa-chart-bar"></i> Báo cáo tiền
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="khui">
+                            <i class="fas fa-gem"></i> Thông tin khui hụi
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <div class="header">
+                    <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                    <div>
+                        <span class="me-3"><i class="fas fa-user-circle"></i> <span id="user-name">Admin</span></span>
+                        <button id="logout-btn" class="btn btn-outline-primary btn-sm"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+                    </div>
+                </div>
+                
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content active">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-list"></i>
+                                <div class="number" id="total-dayhui">
+                                    <div class="loading">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="label">Tổng dây hụi</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-users"></i>
+                                <div class="number" id="total-hoivien">
+                                    <div class="loading">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="label">Tổng hội viên</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <div class="number" id="total-money">
+                                    <div class="loading">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="label">Tổng tiền hụi</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <div class="number" id="total-debt">
+                                    <div class="loading">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="label">Tổng nợ</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-chart-line"></i> Biểu đồ thu chi
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="revenueChart" height="250"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-bell"></i> Hoạt động gần đây
+                                </div>
+                                <div class="card-body">
+                                    <div id="recent-activity-container">
+                                        <div class="loading">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-exclamation-circle"></i> Hốt hụi sắp đến hạn</span>
+                                    <button class="btn btn-primary btn-sm">Xem tất cả</button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="upcoming-payments-container">
+                                        <div class="loading">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Các tab khác sẽ được tải động -->
+                <div id="tab-content-container">
+                    <!-- Nội dung các tab khác sẽ được tải ở đây -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Khởi tạo Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYV8na-Az2LAgpl6QM2Tiwr6Gm9yhXQZ0",
+            authDomain: "quan-ly-hui-8ad1c.firebaseapp.com",
+            databaseURL: "https://quan-ly-hui-8ad1c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "quan-ly-hui-8ad1c",
+            storageBucket: "quan-ly-hui-8ad1c.firebasestorage.app",
+            messagingSenderId: "665511229865",
+            appId: "1:665511229865:web:fe44f814fff618e35e6cb8"
+        };
+        
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+        
+        let currentUserId = null;
+        
+        // Kiểm tra trạng thái đăng nhập
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Người dùng đã đăng nhập
+                currentUserId = user.uid;
+                document.getElementById('user-name').textContent = user.displayName || user.email;
+                loadData();
+            } else {
+                // Người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // Xử lý đăng xuất
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            auth.signOut().then(() => {
+                window.location.href = 'index.html';
+            }).catch(error => {
+                console.error('Lỗi đăng xuất:', error);
+                alert('Có lỗi xảy ra khi đăng xuất: ' + error.message);
+            });
+        });
+        
+        // Xử lý chuyển tab
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Xóa active class từ tất cả các tab
+                document.querySelectorAll('.nav-link').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Thêm active class cho tab được chọn
+                this.classList.add('active');
+                
+                const tabId = this.getAttribute('data-tab');
+                const href = this.getAttribute('href');
+                
+                // Nếu là liên kết đến trang khác
+                if (href && href !== '#') {
+                    window.location.href = href;
+                    return;
+                }
+                
+                // Ẩn tất cả nội dung tab
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Hiển thị tab được chọn
+                if (tabId && document.getElementById(tabId)) {
+                    document.getElementById(tabId).classList.add('active');
+                }
+            });
+        });
+        
+        // Tải dữ liệu từ Firebase
+        function loadData() {
+            if (!currentUserId) {
+                console.error('Chưa có user ID');
+                return;
+            }
+            
+            // Lấy tổng số dây hụi
+            database.ref(`users/${currentUserId}/dayhui`).once('value').then(snapshot => {
+                const data = snapshot.val();
+                const count = data ? Object.keys(data).length : 0;
+                document.getElementById('total-dayhui').innerHTML = `<div class="number">${count}</div>`;
+                console.log('Tổng dây hụi:', count);
+            }).catch(error => {
+                console.error('Lỗi khi tải dữ liệu dây hụi:', error);
+                document.getElementById('total-dayhui').innerHTML = '<div class="number">0</div>';
+            });
+            
+            // Lấy tổng số hội viên - ĐÃ SỬA THÀNH 'members'
+            database.ref(`users/${currentUserId}/members`).once('value').then(snapshot => {
+                const data = snapshot.val();
+                const count = data ? Object.keys(data).length : 0;
+                document.getElementById('total-hoivien').innerHTML = `<div class="number">${count}</div>`;
+                console.log('Tổng hội viên:', count);
+            }).catch(error => {
+                console.error('Lỗi khi tải dữ liệu hội viên:', error);
+                document.getElementById('total-hoivien').innerHTML = '<div class="number">0</div>';
+            });
+            
+            // Tính tổng tiền hụi từ các dây hụi
+            database.ref(`users/${currentUserId}/dayhui`).once('value').then(snapshot => {
+                const data = snapshot.val();
+                let totalMoney = 0;
+                
+                if (data) {
+                    Object.values(data).forEach(dayhui => {
+                        if (dayhui.tienHui && dayhui.hoiVien) {
+                            const tienHui = parseInt(dayhui.tienHui) || 0;
+                            const soHoiVien = Array.isArray(dayhui.hoiVien) ? dayhui.hoiVien.length : 0;
+                            totalMoney += tienHui * soHoiVien;
+                        }
+                    });
+                }
+                
+                document.getElementById('total-money').innerHTML = `<div class="number">${formatCurrency(totalMoney)}</div>`;
+                console.log('Tổng tiền hụi:', totalMoney);
+            }).catch(error => {
+                console.error('Lỗi khi tính tổng tiền hụi:', error);
+                document.getElementById('total-money').innerHTML = '<div class="number">0đ</div>';
+            });
+            
+            // Tính tổng nợ từ các hội viên - ĐÃ SỬA THÀNH 'members'
+            database.ref(`users/${currentUserId}/members`).once('value').then(snapshot => {
+                const data = snapshot.val();
+                let totalDebt = 0;
+                
+                if (data) {
+                    Object.values(data).forEach(hoiVien => {
+                        // Vì hiện tại chúng ta chỉ lưu tên, nên tạm thời tổng nợ = 0
+                        // Bạn có thể thêm trường 'tongNo' vào mỗi hội viên nếu cần
+                        if (hoiVien.tongNo) {
+                            totalDebt += parseInt(hoiVien.tongNo) || 0;
+                        }
+                    });
+                }
+                
+                document.getElementById('total-debt').innerHTML = `<div class="number">${formatCurrency(totalDebt)}</div>`;
+                console.log('Tổng nợ:', totalDebt);
+            }).catch(error => {
+                console.error('Lỗi khi tính tổng nợ:', error);
+                document.getElementById('total-debt').innerHTML = '<div class="number">0đ</div>';
+            });
+            
+            // Tải hoạt động gần đây
+            loadRecentActivity();
+            
+            // Tải danh sách hốt hụi sắp đến hạn
+            loadUpcomingPayments();
+            
+            // Vẽ biểu đồ
+            drawChart();
+        }
+        // Xử lý click vào thẻ tổng dây hụi để chuyển đến trang danh sách dây hụi
+        document.getElementById('total-dayhui').addEventListener('click', function() {
+            window.location.href = 'dayhui.html';
+        });
+
+        // Thêm hiệu ứng con trỏ khi hover để người dùng biết có thể click
+        document.getElementById('total-dayhui').style.cursor = 'pointer';
+        
+        // Tải hoạt động gần đây
+        function loadRecentActivity() {
+            // Vì rules của bạn không có lichSuHoatDong, chúng ta sẽ tạo dữ liệu mẫu
+            // hoặc bạn có thể thêm node này vào rules
+            const container = document.getElementById('recent-activity-container');
+            
+            // Tạm thời hiển thị thông báo không có dữ liệu
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>Chưa có hoạt động nào được ghi nhận</p>
+                    <small class="text-muted">Tính năng này cần cập nhật rules Firebase</small>
+                </div>
+            `;
+        }
+        
+        // Tải danh sách hốt hụi sắp đến hạn
+        function loadUpcomingPayments() {
+            const container = document.getElementById('upcoming-payments-container');
+            
+            // Vì rules của bạn không có cấu trúc cho lịch trình đóng hụi
+            // Chúng ta sẽ hiển thị thông báo tạm thời
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Không có hốt hụi sắp đến hạn</p>
+                    <small class="text-muted">Tính năng này cần cấu trúc dữ liệu phù hợp</small>
+                </div>
+            `;
+        }
+        
+        // Vẽ biểu đồ
+        function drawChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+                    datasets: [{
+                        label: 'Thu nhập (triệu đồng)',
+                        data: [120, 150, 180, 200, 170, 220],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        fill: true
+                    }, {
+                        label: 'Chi phí (triệu đồng)',
+                        data: [80, 100, 120, 150, 130, 160],
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Hàm định dạng tiền tệ
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+    </script>
+</body>
+</html>
