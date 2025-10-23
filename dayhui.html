@@ -10,191 +10,164 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <style>
-        * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .auth-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .member-name {
+            flex: 1;
+        }
+        
+        .member-position {
+            width: 60px;
+            text-align: center;
+        }
+        
+        .member-actions {
+            width: 80px;
+            text-align: right;
+        }
+        
+        .add-member-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .back-btn {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .back-btn:hover {
+            text-decoration: underline;
+        }
+        
+        .search-member {
+            margin-bottom: 15px;
+        }
+        
+        .search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .search-result-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .table th {
+            background-color: var(--light-color);
+            font-weight: 600;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .badge {
+            font-size: 0.75em;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .add-member-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
 
-body {
-    background-color: #f5f5f5;
-    color: #333;
-    line-height: 1.6;
-}
-
-/* Thanh header cố định */
-.fixed-header {
-    background-color: #34495e;
-    color: white;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    height: 60px;
-}
-
-.fixed-header h2 {
-    font-size: 1.3rem;
-    font-weight: normal;
-}
-
-.fixed-header .logout-btn {
-    background-color: transparent;
-    border: 1px solid white;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 0.9rem;
-}
-
-.fixed-header .logout-btn:hover {
-    background-color: #e74c3c;
-    border-color: #e74c3c;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    margin-top: 90px;
-}
-
-.card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    border: none;
-}
-
-.card-header {
-    background-color: #34495e;
-    color: white;
-    border-radius: 8px 8px 0 0 !important;
-    padding: 15px 20px;
-    font-weight: 600;
-}
-
-.btn-primary {
-    background-color: #3498db;
-    border: none;
-}
-
-.btn-primary:hover {
-    background-color: #2980b9;
-}
-
-.auth-section {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    max-width: 400px;
-    margin: 50px auto;
-    text-align: center;
-}
-
-.member-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 12px;
-    border-bottom: 1px solid #eee;
-}
-
-.member-name {
-    flex: 1;
-}
-
-.member-position {
-    width: 60px;
-    text-align: center;
-}
-
-.member-actions {
-    width: 80px;
-    text-align: right;
-}
-
-.add-member-form {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-}
-
-.add-member-form .form-control {
-    flex: 1;
-    min-width: 120px;
-}
-
-.back-btn {
-    color: #3498db;
-    text-decoration: none;
-    font-weight: 500;
-    margin-bottom: 20px;
-    display: inline-block;
-}
-
-.back-btn:hover {
-    text-decoration: underline;
-}
-
-.search-member {
-    margin-bottom: 15px;
-}
-
-.search-results {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 15px;
-}
-
-.search-result-item {
-    padding: 8px 12px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.search-result-item:hover {
-    background-color: #f8f9fa;
-}
-
-.search-result-item:last-child {
-    border-bottom: none;
-}
-
-.table th {
-    background-color: #ecf0f1;
-    font-weight: 600;
-}
-
-.table td {
-    vertical-align: middle;
-}
-
-.badge {
-    font-size: 0.75em;
-}
-
-.btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-}
-
-.member-name small {
+        .add-member-form .form-control {
+            flex: 1;
+            min-width: 120px;
+        }
+        .member-name small {
     display: block;
     font-size: 0.8em;
     margin-top: 2px;
@@ -205,376 +178,9 @@ body {
     font-size: 0.8em;
     color: #666;
 }
-
-.stat-card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    text-align: center;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.stat-card h3 {
-    margin-bottom: 10px;
-    color: #2c3e50;
-    font-size: 1.8rem;
-}
-
-.stat-card p {
-    color: #7f8c8d;
-    font-size: 0.9rem;
-}
-
-/* Cải tiến responsive cho tablet */
-@media (max-width: 1024px) {
-    .stat-card {
-        padding: 15px;
-    }
-    
-    .fixed-header > div {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    
-    .table-responsive {
-        font-size: 0.9rem;
-    }
-    
-    .table th, .table td {
-        padding: 8px 10px;
-    }
-}
-
-/* Cải tiến responsive cho màn hình nhỏ (mobile) */
-@media (max-width: 768px) {
-    .fixed-header {
-        padding: 8px 15px;
-        height: auto;
-        min-height: 50px;
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .fixed-header h2 {
-        font-size: 1rem;
-        text-align: center;
-    }
-    
-    .fixed-header > div {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-        align-items: center;
-    }
-    
-    .fixed-header .logout-btn {
-        padding: 4px 8px;
-        font-size: 0.85rem;
-        width: 100%;
-        max-width: 120px;
-    }
-    
-    .container {
-        padding: 10px;
-        margin-top: 80px;
-    }
-    
-    .stat-card {
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-    
-    .stat-card h3 {
-        font-size: 1.5rem;
-        margin-bottom: 8px;
-    }
-    
-    .stat-card p {
-        font-size: 0.8rem;
-    }
-    
-    /* Tối ưu bảng dữ liệu cho mobile */
-    .table-responsive {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        overflow-x: auto;
-    }
-    
-    .table {
-        margin-bottom: 0;
-        min-width: 800px;
-    }
-    
-    .table th, .table td {
-        white-space: nowrap;
-        padding: 8px;
-        font-size: 0.85rem;
-    }
-    
-    .btn-sm {
-        padding: 0.2rem 0.4rem;
-        font-size: 0.8rem;
-        margin: 1px;
-    }
-    
-    /* Tối ưu modal cho mobile */
-    .modal-dialog {
-        margin: 10px;
-        max-width: calc(100% - 20px);
-    }
-    
-    .modal-content {
-        padding: 15px;
-    }
-    
-    .modal-body {
-        padding: 15px;
-        max-height: 70vh;
-        overflow-y: auto;
-    }
-    
-    .modal-header, .modal-footer {
-        padding: 12px 15px;
-    }
-    
-    /* Tối ưu form trong modal */
-    .add-member-form {
-        flex-direction: column;
-    }
-    
-    .add-member-form .form-control {
-        min-width: 100%;
-        margin-bottom: 8px;
-    }
-    
-    .member-item {
-        padding: 10px 8px;
-    }
-    
-    .member-name {
-        font-size: 0.9rem;
-    }
-    
-    .member-name small {
-        font-size: 0.75rem;
-    }
-    
-    /* Tối ưu phần thống kê */
-    .row.mb-4 {
-    display: flex;
-    flex-wrap: wrap;
-    margin-left: -10px;
-    margin-right: -10px;
-}
-
-.col-md-3 {
-    padding-left: 10px;
-    padding-right: 10px;
-}
-    
-    /* Tối ưu header trong card */
-    .card-header {
-        padding: 12px 15px;
-        font-size: 0.9rem;
-    }
-    
-    /* Tối ưu nút tạo dây hụi mới */
-    .fixed-header .btn-primary {
-        width: 100%;
-        max-width: 200px;
-        font-size: 0.85rem;
-        padding: 6px 12px;
-    }
-}
-
-/* Cải tiến responsive cho màn hình rất nhỏ */
-@media (max-width: 480px) {
-    .fixed-header {
-        padding: 6px 10px;
-        min-height: 45px;
-    }
-    
-    .fixed-header h2 {
-        font-size: 0.9rem;
-    }
-    
-    .container {
-        padding: 8px;
-        margin-top: 70px;
-    }
-    
-    .stat-card {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-    
-    .stat-card h3 {
-        font-size: 1.3rem;
-    }
-    
-    .auth-section {
-        padding: 20px;
-        margin: 30px auto;
-    }
-    
-    .table th, .table td {
-        padding: 6px 8px;
-        font-size: 0.8rem;
-    }
-    
-    .btn-sm {
-        padding: 0.15rem 0.3rem;
-        font-size: 0.75rem;
-    }
-    
-    .modal-dialog {
-        margin: 5px;
-        max-width: calc(100% - 10px);
-    }
-    
-    .modal-content {
-        padding: 10px;
-    }
-    
-    .modal-body {
-        padding: 10px;
-    }
-    
-    /* Tối ưu form inputs */
-    .form-control {
-        font-size: 0.9rem;
-        padding: 8px 12px;
-    }
-    
-    .form-label {
-        font-size: 0.9rem;
-        margin-bottom: 5px;
-    }
-    
-    /* Tối ưu phần tìm kiếm hội viên */
-    .search-results {
-        max-height: 150px;
-    }
-    
-    .search-result-item {
-        padding: 6px 10px;
-        font-size: 0.85rem;
-    }
-}
-
-/* Cải tiến cho màn hình lớn */
-@media (min-width: 1200px) {
-    .container {
-        max-width: 1400px;
-    }
-    
-    .table-responsive {
-        font-size: 1rem;
-    }
-}
-
-/* Hiệu ứng loading */
-.spinner-border {
-    width: 3rem;
-    height: 3rem;
-}
-
-/* Tối ưu trạng thái empty */
-.text-center.py-4 {
-    padding: 2rem 1rem;
-}
-
-/* Tối ưu phần đăng nhập */
-.auth-section h3 {
-    margin-bottom: 1rem;
-}
-
-.auth-section .btn {
-    margin-bottom: 0.5rem;
-}
-
-/* Đảm bảo các phần tử luôn hiển thị đúng */
-.d-flex {
-    display: flex !important;
-}
-
-.justify-content-between {
-    justify-content: space-between !important;
-}
-
-.align-items-center {
-    align-items: center !important;
-}
-
-/* Tối ưu cho các nút trong header trên mobile */
-@media (max-width: 768px) {
-    .fixed-header > div .btn-primary {
-        order: -1;
-        margin-bottom: 5px;
-    }
-    
-    .fixed-header > div .me-3 {
-        order: 0;
-        margin-bottom: 5px;
-    }
-    
-    .fixed-header > div .logout-btn {
-        order: 1;
-    }
-}
-
-/* Tối ưu khoảng cách các phần tử trong modal */
-.modal-body .row {
-    margin-bottom: 10px;
-}
-
-.modal-body .mb-3 {
-    margin-bottom: 15px !important;
-}
-
-/* Đảm bảo các badge hiển thị tốt trên mobile */
-.badge {
-    font-size: 0.7em;
-    padding: 0.35em 0.65em;
-}
-
-@media (max-width: 480px) {
-    .badge {
-        font-size: 0.65em;
-        padding: 0.3em 0.6em;
-    }
-}
-        @media (max-width: 768px) {
-    body {
-        padding-top: 110px;
-    }
-}
     </style>
 </head>
 <body>
-    <!-- Thanh header cố định -->
-    <div class="fixed-header" id="appHeader" style="display: none;">
-        <h2><i class="fas fa-list-alt"></i> Danh Sách Dây Hụi</h2>
-        <div>
-            <span class="me-3">Xin chào, <span id="userEmail"></span></span>
-            <button class="btn btn-primary me-2" onclick="showAddModal()">
-                <i class="fas fa-plus-circle"></i> Tạo dây hụi mới
-            </button>
-            <button class="logout-btn" onclick="signOut()">
-                <i class="fas fa-sign-out-alt"></i> Đăng xuất
-            </button>
-        </div>
-    </div>
-
     <div class="container">
         <a href="dashboard.html" class="back-btn">
             <i class="fas fa-arrow-left"></i> Quay lại Dashboard
@@ -603,30 +209,51 @@ body {
         </div>
 
         <div id="appContent" style="display: none;">
+            <div class="header">
+                <h2><i class="fas fa-list-alt"></i> Danh Sách Dây Hụi</h2>
+                <div>
+                    <span class="me-3">Xin chào, <span id="userEmail"></span></span>
+                    <button class="btn btn-primary" onclick="showAddModal()">
+                        <i class="fas fa-plus-circle"></i> Tạo dây hụi mới
+                    </button>
+                    <button class="btn btn-outline-secondary ms-2" onclick="signOut()">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </button>
+                </div>
+            </div>
+
             <!-- Thống kê -->
             <div class="row mb-4">
                 <div class="col-md-3">
-                    <div class="stat-card">
-                        <h3 id="totalHuiCount">0</h3>
-                        <p class="text-muted">Tổng số dây hụi</p>
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 id="totalHuiCount">0</h3>
+                            <p class="text-muted">Tổng số dây hụi</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
-                        <h3 id="activeHuiCount">0</h3>
-                        <p class="text-muted">Đang hoạt động</p>
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 id="activeHuiCount">0</h3>
+                            <p class="text-muted">Đang hoạt động</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
-                        <h3 id="completedHuiCount">0</h3>
-                        <p class="text-muted">Đã kết thúc</p>
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 id="completedHuiCount">0</h3>
+                            <p class="text-muted">Đã kết thúc</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
-                        <h3 id="pendingHuiCount">0</h3>
-                        <p class="text-muted">Chờ bắt đầu</p>
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 id="pendingHuiCount">0</h3>
+                            <p class="text-muted">Chờ bắt đầu</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -886,14 +513,12 @@ body {
                     document.getElementById('userEmail').textContent = user.email;
                     document.getElementById('authSection').style.display = 'none';
                     document.getElementById('appContent').style.display = 'block';
-                    document.getElementById('appHeader').style.display = 'flex';
                     loadDayhuis();
                     loadSavedMembers(); // Tải danh sách hội viên đã lưu
                 } else {
                     currentUser = null;
                     document.getElementById('authSection').style.display = 'block';
                     document.getElementById('appContent').style.display = 'none';
-                    document.getElementById('appHeader').style.display = 'none';
                     console.log('❌ Chưa đăng nhập');
                 }
             });
@@ -961,136 +586,136 @@ body {
         }
 
         // 🔧 HÀM SỬA LỖI DỮ LIỆU HỘI VIÊN BỊ NHÂN ĐÔI
-        async function fixDuplicateMembers() {
-            if (!currentUser) return;
-            
-            try {
-                const dayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
-                const snapshot = await dayhuiRef.once('value');
+async function fixDuplicateMembers() {
+    if (!currentUser) return;
+    
+    try {
+        const dayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
+        const snapshot = await dayhuiRef.once('value');
+        
+        if (!snapshot.exists()) return;
+        
+        const updates = {};
+        const dayhuisData = snapshot.val();
+        
+        for (const huiId in dayhuisData) {
+            const hui = dayhuisData[huiId];
+            if (hui.hoiVien && Array.isArray(hui.hoiVien)) {
+                // Lọc bỏ hội viên trùng lặp
+                const uniqueMembers = [];
+                const seenNames = new Set();
                 
-                if (!snapshot.exists()) return;
-                
-                const updates = {};
-                const dayhuisData = snapshot.val();
-                
-                for (const huiId in dayhuisData) {
-                    const hui = dayhuisData[huiId];
-                    if (hui.hoiVien && Array.isArray(hui.hoiVien)) {
-                        // Lọc bỏ hội viên trùng lặp
-                        const uniqueMembers = [];
-                        const seenNames = new Set();
-                        
-                        hui.hoiVien.forEach(member => {
-                            if (member && member.ten && !seenNames.has(member.ten)) {
-                                seenNames.add(member.ten);
-                                uniqueMembers.push(member);
-                            }
-                        });
-                        
-                        // Nếu số lượng khác nhau, cập nhật lại
-                        if (uniqueMembers.length !== hui.hoiVien.length) {
-                            updates[`${huiId}/hoiVien`] = uniqueMembers;
-                            console.log(`✅ Đã sửa dây hụi ${huiId}: ${hui.hoiVien.length} → ${uniqueMembers.length} hội viên`);
-                        }
+                hui.hoiVien.forEach(member => {
+                    if (member && member.ten && !seenNames.has(member.ten)) {
+                        seenNames.add(member.ten);
+                        uniqueMembers.push(member);
                     }
-                }
+                });
                 
-                if (Object.keys(updates).length > 0) {
-                    await dayhuiRef.update(updates);
-                    console.log('✅ Đã sửa xong tất cả dữ liệu hội viên bị nhân đôi');
-                    return true;
+                // Nếu số lượng khác nhau, cập nhật lại
+                if (uniqueMembers.length !== hui.hoiVien.length) {
+                    updates[`${huiId}/hoiVien`] = uniqueMembers;
+                    console.log(`✅ Đã sửa dây hụi ${huiId}: ${hui.hoiVien.length} → ${uniqueMembers.length} hội viên`);
                 }
-                return false;
-                
-            } catch (error) {
-                console.error('❌ Lỗi khi sửa dữ liệu hội viên:', error);
-                return false;
             }
         }
+        
+        if (Object.keys(updates).length > 0) {
+            await dayhuiRef.update(updates);
+            console.log('✅ Đã sửa xong tất cả dữ liệu hội viên bị nhân đôi');
+            return true;
+        }
+        return false;
+        
+    } catch (error) {
+        console.error('❌ Lỗi khi sửa dữ liệu hội viên:', error);
+        return false;
+    }
+}
 
         // Tải danh sách dây hụi
         async function loadDayhuis() {
             if (!currentUser) {
-                showError('Vui lòng đăng nhập để xem dữ liệu');
-                return;
+        showError('Vui lòng đăng nhập để xem dữ liệu');
+        return;
+    }
+
+    console.log('🔄 Đang tải dữ liệu dây hụi...');
+    showLoading(true);
+
+    try {
+        const userDayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
+        const snapshot = await userDayhuiRef.once('value');
+        dayhuis = [];
+        
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            
+            // 🔧 TỰ ĐỘNG SỬA LỖI DỮ LIỆU TRƯỚC KHI HIỂN THỊ
+            const hasFixed = await fixDuplicateMembers();
+            if (hasFixed) {
+                console.log('🔄 Reload dữ liệu sau khi sửa lỗi...');
+                const newSnapshot = await userDayhuiRef.once('value');
+                const newData = newSnapshot.val();
+                Object.keys(newData).forEach(key => {
+                    dayhuis.push({
+                        id: key,
+                        ...newData[key]
+                    });
+                });
+            } else {
+                Object.keys(data).forEach(key => {
+                    dayhuis.push({
+                        id: key,
+                        ...data[key]
+                    });
+                });
             }
-
-            console.log('🔄 Đang tải dữ liệu dây hụi...');
-            showLoading(true);
-
-            try {
-                const userDayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
-                const snapshot = await userDayhuiRef.once('value');
-                dayhuis = [];
-                
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    
-                    // 🔧 TỰ ĐỘNG SỬA LỖI DỮ LIỆU TRƯỚC KHI HIỂN THỊ
-                    const hasFixed = await fixDuplicateMembers();
-                    if (hasFixed) {
-                        console.log('🔄 Reload dữ liệu sau khi sửa lỗi...');
-                        const newSnapshot = await userDayhuiRef.once('value');
-                        const newData = newSnapshot.val();
-                        Object.keys(newData).forEach(key => {
-                            dayhuis.push({
-                                id: key,
-                                ...newData[key]
-                            });
-                        });
-                    } else {
-                        Object.keys(data).forEach(key => {
-                            dayhuis.push({
-                                id: key,
-                                ...data[key]
-                            });
-                        });
-                    }
-                    
-                    console.log(`✅ Đã tải ${dayhuis.length} dây hụi`);
-                    showSuccess();
-                } else {
-                    console.log('ℹ️ Chưa có dữ liệu dây hụi');
-                    showEmpty();
-                }
-
-                renderDayhuis();
-                updateStatistics();
-                
-            } catch (error) {
-                console.error('❌ Lỗi khi tải dữ liệu:', error);
-                showError('Không thể tải dữ liệu: ' + error.message);
-            }
+            
+            console.log(`✅ Đã tải ${dayhuis.length} dây hụi`);
+            showSuccess();
+        } else {
+            console.log('ℹ️ Chưa có dữ liệu dây hụi');
+            showEmpty();
         }
+
+        renderDayhuis();
+        updateStatistics();
+        
+    } catch (error) {
+        console.error('❌ Lỗi khi tải dữ liệu:', error);
+        showError('Không thể tải dữ liệu: ' + error.message);
+    }
+}
 
         // Tải danh sách hội viên đã lưu (chỉ tên)
         async function loadSavedMembers() {
             if (!currentUser) return;
 
-            try {
-                const savedMembersRef = database.ref('users/' + currentUser.uid + '/members');
-                const snapshot = await savedMembersRef.once('value');
-                savedMembers = [];
-                
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    Object.keys(data).forEach(key => {
-                        savedMembers.push({
-                            id: key,
-                            name: data[key].name,
-                            phone: data[key].phone || '' // Tải cả số điện thoại
-                        });
-                    });
-                    console.log(`✅ Đã tải ${savedMembers.length} hội viên đã lưu`);
-                } else {
-                    console.log('ℹ️ Chưa có hội viên nào được lưu');
-                    savedMembers = [];
-                }
-                
-            } catch (error) {
-                console.error('❌ Lỗi khi tải hội viên đã lưu:', error);
-            }
+    try {
+        const savedMembersRef = database.ref('users/' + currentUser.uid + '/members');
+        const snapshot = await savedMembersRef.once('value');
+        savedMembers = [];
+        
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            Object.keys(data).forEach(key => {
+                savedMembers.push({
+                    id: key,
+                    name: data[key].name,
+                    phone: data[key].phone || '' // Tải cả số điện thoại
+                });
+            });
+            console.log(`✅ Đã tải ${savedMembers.length} hội viên đã lưu`);
+        } else {
+            console.log('ℹ️ Chưa có hội viên nào được lưu');
+            savedMembers = [];
         }
+        
+    } catch (error) {
+        console.error('❌ Lỗi khi tải hội viên đã lưu:', error);
+    }
+}
 
         // Hiển thị trạng thái
         function showLoading(show) {
@@ -1152,70 +777,101 @@ body {
         function renderDayhuis() {
             const tbody = document.getElementById('huiTableBody');
 
-            if (dayhuis.length === 0) {
-                showEmpty();
-                return;
-            }
-            
-            tbody.innerHTML = dayhuis.map((hui, index) => {
-                // 🔧 SỬA: Tính số hội viên THỰC TẾ (loại bỏ trùng lặp)
-                const soHoiVien = calculateActualMemberCount(hui.hoiVien);
-                
-                // Định dạng ngày
-                const ngayMo = formatDate(hui.ngayMoHui);
-                const ngayMan = formatDate(hui.ngayManDuKien);
-                
-                // Xác định trạng thái dựa trên số kỳ đã hốt
-                const soKyDaHot = hui.soKy || 0;
-                const tongSoKy = hui.tongSoKy || 0;
-                
-                let trangThaiText = '';
-                let badgeClass = '';
-                
-                if (soKyDaHot === 0) {
-                    trangThaiText = 'Chờ bắt đầu';
-                    badgeClass = 'bg-secondary';
-                } else if (soKyDaHot > 0 && soKyDaHot < tongSoKy) {
-                    trangThaiText = 'Đang hoạt động';
-                    badgeClass = 'bg-success';
-                } else if (soKyDaHot === tongSoKy) {
-                    trangThaiText = 'Đã kết thúc';
-                    badgeClass = 'bg-primary';
-                } else {
-                    trangThaiText = hui.trangThai || 'Không xác định';
-                    badgeClass = 'bg-warning';
-                }
-                
-                return `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td><strong>${hui.tendayhui || 'Chưa có tên'}</strong></td>
-                        <td>${ngayMo}</td>
-                        <td>${ngayMan}</td>
-                        <td>${soHoiVien}</td> <!-- 🔧 HIỂN THỊ SỐ HỘI VIÊN THỰC TẾ -->
-                        <td>${formatCurrency(hui.tienHui || 0)}</td>
-                        <td>${formatCurrency(hui.tienThao || 0)}</td>
-                        <td>${tongSoKy}</td>
-                        <td>${getPeriodText(hui.kyHan)}</td>
-                        <td><span class="badge ${badgeClass}">${trangThaiText}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary me-1" onclick="viewDayhui('${hui.id}')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning me-1" onclick="editDayhui('${hui.id}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteDayhui('${hui.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+    if (dayhuis.length === 0) {
+        showEmpty();
+        return;
+    }
+    
+    tbody.innerHTML = dayhuis.map((hui, index) => {
+        // 🔧 SỬA: Tính số hội viên THỰC TẾ (loại bỏ trùng lặp)
+        const soHoiVien = calculateActualMemberCount(hui.hoiVien);
+        
+        // Định dạng ngày
+        const ngayMo = formatDate(hui.ngayMoHui);
+        const ngayMan = formatDate(hui.ngayManDuKien);
+        
+        // Xác định trạng thái dựa trên số kỳ đã hốt
+        const soKyDaHot = hui.soKy || 0;
+        const tongSoKy = hui.tongSoKy || 0;
+        
+        let trangThaiText = '';
+        let badgeClass = '';
+        
+        if (soKyDaHot === 0) {
+            trangThaiText = 'Chờ bắt đầu';
+            badgeClass = 'bg-secondary';
+        } else if (soKyDaHot > 0 && soKyDaHot < tongSoKy) {
+            trangThaiText = 'Đang hoạt động';
+            badgeClass = 'bg-success';
+        } else if (soKyDaHot === tongSoKy) {
+            trangThaiText = 'Đã kết thúc';
+            badgeClass = 'bg-primary';
+        } else {
+            trangThaiText = hui.trangThai || 'Không xác định';
+            badgeClass = 'bg-warning';
         }
+        
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td><strong>${hui.tendayhui || 'Chưa có tên'}</strong></td>
+                <td>${ngayMo}</td>
+                <td>${ngayMan}</td>
+                <td>${soHoiVien}</td> <!-- 🔧 HIỂN THỊ SỐ HỘI VIÊN THỰC TẾ -->
+                <td>${formatCurrency(hui.tienHui || 0)}</td>
+                <td>${formatCurrency(hui.tienThao || 0)}</td>
+                <td>${soKyDaHot}/${tongSoKy}</td>
+                <td>${getPeriodText(hui.kyHan)}</td>
+                <td>
+                    <span class="badge ${badgeClass}">${trangThaiText}</span>
+                    <br>
+                    <small class="text-muted">${soHoiVien} hội viên</small>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewHuiDetail('${hui.id}')">
+                        <i class="fas fa-eye"></i> Hốt
+                    </button>
 
-        // 🔧 HÀM TÍNH SỐ HỘI VIÊN THỰC TẾ (loại bỏ trùng lặp)
-        function calculateActualMemberCount(hoiVienData) {
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewDongHui('${hui.id}')">
+                        <i class="fas fa-money-bill"></i> Đóng
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteHui('${hui.id}')">
+                        <i class="fas fa-trash"></i> Xóa
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    showSuccess();
+}
+// 🔧 HÀM TÍNH SỐ HỘI VIÊN THỰC TẾ (LOẠI BỎ TRÙNG LẶP)
+function calculateActualMemberCount(hoiVienData) {
+    if (!hoiVienData) return 0;
+    
+    let hoiVienArray = [];
+    if (Array.isArray(hoiVienData)) {
+        hoiVienArray = hoiVienData;
+    } else {
+        hoiVienArray = Object.values(hoiVienData);
+    }
+    
+    // Lọc bỏ phần tử không có tên và loại bỏ trùng lặp
+    const uniqueNames = new Set();
+    
+    hoiVienArray.forEach(hv => {
+        if (hv && hv.ten) {
+            uniqueNames.add(hv.ten);
+        }
+    });
+    
+    return uniqueNames.size;
+}
+
+
+        // 🔧 THÊM HÀM TÍNH SỐ THÀNH VIÊN THỰC TẾ
+        function calculateActualMembers(hoiVienData) {
             if (!hoiVienData) return 0;
             
             let hoiVienArray = [];
@@ -1225,35 +881,78 @@ body {
                 hoiVienArray = Object.values(hoiVienData);
             }
             
-            // Lọc bỏ phần tử không có tên
+            // Lọc bỏ phần tử không có tên và chỉ đếm các thành viên thực tế
             hoiVienArray = hoiVienArray.filter(hv => hv && hv.ten);
             
-            // Gộp các hội viên cùng tên (các chân của cùng 1 người)
-            const uniqueNames = new Set();
+            // Đếm số thành viên duy nhất (loại bỏ trùng lặp)
+            const uniqueMembers = new Set();
             
             hoiVienArray.forEach(hv => {
-                // Lấy tên gốc (bỏ số cuối nếu có)
+                // Lấy tên gốc (bỏ số cuối nếu có do lỗi tách chân)
                 const originalName = hv.ten.replace(/\d+$/, '').trim();
-                uniqueNames.add(originalName);
+                uniqueMembers.add(originalName);
             });
             
-            return uniqueNames.size;
+            return uniqueMembers.size;
+        }
+
+        // Định dạng ngày tháng
+        function formatDate(dateString) {
+            if (!dateString) return '--/--/----';
+            
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
+                    return dateString; // Trả về nguyên bản nếu không parse được
+                }
+                
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                
+                return `${day}/${month}/${year}`;
+            } catch (error) {
+                return dateString;
+            }
+        }
+
+        // Hàm xóa dây hụi
+        async function deleteHui(huiId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa dây hụi này? Hành động này không thể hoàn tác.')) {
+                return;
+            }
+            
+            try {
+                const huiRef = database.ref('users/' + currentUser.uid + '/dayhui/' + huiId);
+                await huiRef.remove();
+                console.log('✅ Đã xóa dây hụi:', huiId);
+                alert('Xóa dây hụi thành công!');
+                loadDayhuis(); // Tải lại danh sách
+            } catch (error) {
+                console.error('❌ Lỗi khi xóa dây hụi:', error);
+                alert('Lỗi khi xóa dây hụi: ' + error.message);
+            }
         }
 
         // Cập nhật thống kê
         function updateStatistics() {
-            const total = dayhuis.length;
-            const active = dayhuis.filter(hui => {
+            let total = dayhuis.length;
+            let active = 0;
+            let completed = 0;
+            let pending = 0;
+
+            dayhuis.forEach(hui => {
                 const soKyDaHot = hui.soKy || 0;
                 const tongSoKy = hui.tongSoKy || 0;
-                return soKyDaHot > 0 && soKyDaHot < tongSoKy;
-            }).length;
-            const completed = dayhuis.filter(hui => {
-                const soKyDaHot = hui.soKy || 0;
-                const tongSoKy = hui.tongSoKy || 0;
-                return soKyDaHot === tongSoKy;
-            }).length;
-            const pending = dayhuis.filter(hui => (hui.soKy || 0) === 0).length;
+                
+                if (soKyDaHot === 0) {
+                    pending++;
+                } else if (soKyDaHot > 0 && soKyDaHot < tongSoKy) {
+                    active++;
+                } else if (soKyDaHot === tongSoKy) {
+                    completed++;
+                }
+            });
 
             document.getElementById('totalHuiCount').textContent = total;
             document.getElementById('activeHuiCount').textContent = active;
@@ -1261,348 +960,387 @@ body {
             document.getElementById('pendingHuiCount').textContent = pending;
         }
 
-        // Hiển thị modal tạo dây hụi mới
-        function showAddModal() {
-            // Reset form
-            document.getElementById('addHuiForm').reset();
-            members = [];
-            renderMemberList();
+        // Thêm hàm tự động cập nhật trạng thái khi hốt hụi (để gọi từ trang donghot.html)
+        async function updateHuiStatus(huiId) {
+            if (!currentUser) return;
             
-            // Đặt ngày mặc định là hôm nay
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('huiStartDate').value = today;
-            calculateEndDate();
-            
-            // Hiển thị modal
-            const modal = new bootstrap.Modal(document.getElementById('addHuiModal'));
-            modal.show();
+            try {
+                const huiRef = database.ref('users/' + currentUser.uid + '/dayhui/' + huiId);
+                const snapshot = await huiRef.once('value');
+                
+                if (!snapshot.exists()) return;
+                
+                const huiData = snapshot.val();
+                const soKyDaHot = huiData.soKy || 0;
+                const tongSoKy = huiData.tongSoKy || 0;
+                
+                let newStatus = '';
+                if (soKyDaHot === 0) {
+                    newStatus = 'cho_bat_dau';
+                } else if (soKyDaHot > 0 && soKyDaHot < tongSoKy) {
+                    newStatus = 'dang_hoat_dong';
+                } else if (soKyDaHot === tongSoKy) {
+                    newStatus = 'da_ket_thuc';
+                }
+                
+                // Cập nhật trạng thái nếu có thay đổi
+                if (newStatus && newStatus !== huiData.trangThai) {
+                    await huiRef.update({ trangThai: newStatus });
+                    console.log(`✅ Đã cập nhật trạng thái dây hụi ${huiId} thành: ${newStatus}`);
+                }
+                
+            } catch (error) {
+                console.error('❌ Lỗi khi cập nhật trạng thái dây hụi:', error);
+            }
         }
 
-        // Tính ngày mãn dự kiến
+        // Định dạng tiền
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND' 
+            }).format(amount);
+        }
+
+        function getPeriodText(period) {
+            const periods = {
+                'ngay': 'Ngày',
+                'tuan': 'Tuần',
+                'thang': 'Tháng'
+            };
+            return periods[period] || period;
+        }
+
+        // Hàm tính ngày mãn dự kiến
         function calculateEndDate() {
-            const startDate = document.getElementById('huiStartDate').value;
-            const periodType = document.getElementById('huiPeriod').value;
-            const totalPeriods = parseInt(document.getElementById('huiTotalPeriods').value) || 0;
+            const startDateInput = document.getElementById('huiStartDate');
+            const periodSelect = document.getElementById('huiPeriod');
+            const totalPeriodsInput = document.getElementById('huiTotalPeriods');
+            const endDateInput = document.getElementById('huiEndDate');
             
-            if (!startDate || !periodType || totalPeriods <= 0) return;
+            if (!startDateInput.value || !periodSelect.value || !totalPeriodsInput.value) {
+                return;
+            }
             
-            const start = new Date(startDate);
-            let endDate = new Date(start);
+            const startDate = new Date(startDateInput.value);
+            const period = periodSelect.value;
+            const totalPeriods = parseInt(totalPeriodsInput.value);
             
-            switch (periodType) {
+            if (isNaN(startDate.getTime()) || isNaN(totalPeriods) || totalPeriods < 1) {
+                return;
+            }
+            
+            let endDate = new Date(startDate);
+            
+            // Tính ngày mãn dự kiến dựa trên kỳ hạn
+            switch (period) {
                 case 'ngay':
-                    endDate.setDate(start.getDate() + totalPeriods);
+                    endDate.setDate(startDate.getDate() + totalPeriods);
                     break;
                 case 'tuan':
-                    endDate.setDate(start.getDate() + (totalPeriods * 7));
+                    endDate.setDate(startDate.getDate() + (totalPeriods * 7));
                     break;
                 case 'thang':
-                    endDate.setMonth(start.getMonth() + totalPeriods);
+                    endDate.setMonth(startDate.getMonth() + totalPeriods);
                     break;
                 default:
                     return;
             }
             
-            document.getElementById('huiEndDate').value = endDate.toISOString().split('T')[0];
+            // Định dạng ngày thành YYYY-MM-DD
+            const year = endDate.getFullYear();
+            const month = String(endDate.getMonth() + 1).padStart(2, '0');
+            const day = String(endDate.getDate()).padStart(2, '0');
+            
+            endDateInput.value = `${year}-${month}-${day}`;
         }
 
-        // Tìm kiếm hội viên trong danh sách đã lưu
-        function searchMembers() {
-            const searchTerm = document.getElementById('searchMemberInput').value.toLowerCase().trim();
-            const resultsContainer = document.getElementById('searchResults');
+        // Cập nhật hàm showAddModal để set ngày mặc định
+        function showAddModal() {
+            // Reset form
+            document.getElementById('addHuiForm').reset();
+            document.getElementById('huiTotalPeriods').value = 15;
+            document.getElementById('huiAmount').value = 100000;
+            document.getElementById('huiBidAmount').value = 50000;
             
-            if (!searchTerm) {
-                resultsContainer.style.display = 'none';
-                return;
-            }
+            // Set ngày mở hụi mặc định là hôm nay
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('huiStartDate').value = `${year}-${month}-${day}`;
             
-            const filteredMembers = savedMembers.filter(member => 
-                member.name.toLowerCase().includes(searchTerm)
-            );
+            // Tính ngày mãn dự kiến
+            calculateEndDate();
             
-            if (filteredMembers.length === 0) {
-                resultsContainer.innerHTML = '<div class="search-result-item text-muted">Không tìm thấy hội viên</div>';
-            } else {
-                resultsContainer.innerHTML = filteredMembers.map(member => `
-                    <div class="search-result-item" onclick="selectMemberFromSearch('${member.id}', '${member.name}', '${member.phone || ''}')">
-                        <div class="member-name">
-                            ${member.name}
-                            ${member.phone ? `<small>${member.phone}</small>` : ''}
-                        </div>
-                        <span class="badge bg-light text-dark">Thêm</span>
-                    </div>
-                `).join('');
-            }
-            
-            resultsContainer.style.display = 'block';
-        }
-
-        // Chọn hội viên từ kết quả tìm kiếm
-        function selectMemberFromSearch(memberId, memberName, memberPhone) {
-            // Tìm số chân tiếp theo
-            const nextPosition = members.length > 0 ? 
-                Math.max(...members.map(m => m.soChan || 0)) + 1 : 1;
-            
-            // Thêm vào danh sách tạm thời
-            members.push({
-                ten: memberName,
-                soDienThoai: memberPhone,
-                soChan: nextPosition
-            });
-            
-            // Cập nhật giao diện
+            // Reset danh sách hội viên
+            members = [];
             renderMemberList();
-            
-            // Reset tìm kiếm
             document.getElementById('searchMemberInput').value = '';
             document.getElementById('searchResults').style.display = 'none';
+            
+            const modal = new bootstrap.Modal(document.getElementById('addHuiModal'));
+            modal.show();
         }
 
-        // Thêm hội viên mới
-        function addMember() {
+        // QUẢN LÝ DANH SÁCH HỘI VIÊN
+        async function addMember() {
             const nameInput = document.getElementById('newMemberName');
-            const phoneInput = document.getElementById('newMemberPhone');
-            const positionInput = document.getElementById('newMemberPosition');
-            
-            const name = nameInput.value.trim();
-            const phone = phoneInput.value.trim();
-            const position = parseInt(positionInput.value) || members.length + 1;
-            
-            if (!name) {
-                alert('Vui lòng nhập tên hội viên');
-                return;
-            }
-            
-            // Kiểm tra xem đã có hội viên với số chân này chưa
-            const existingWithPosition = members.find(m => m.soChan === position);
-            if (existingWithPosition) {
-                alert(`Số chân ${position} đã được sử dụng bởi ${existingWithPosition.ten}`);
-                return;
-            }
-            
-            // Thêm vào danh sách tạm thời
-            members.push({
-                ten: name,
-                soDienThoai: phone,
-                soChan: position
+    const phoneInput = document.getElementById('newMemberPhone');
+    const positionInput = document.getElementById('newMemberPosition');
+    
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const soChan = parseInt(positionInput.value);
+
+    if (!name) {
+        alert('Vui lòng nhập tên hội viên');
+        nameInput.focus();
+        return;
+    }
+
+    if (!soChan || soChan < 1) {
+        alert('Vui lòng nhập số chân hợp lệ');
+        positionInput.focus();
+        return;
+    }
+
+    try {
+        // Lưu thông tin hội viên vào thư viện (cả tên và số điện thoại)
+        const existingMember = savedMembers.find(m => m.name.toLowerCase() === name.toLowerCase());
+        if (!existingMember) {
+            const savedMembersRef = database.ref('users/' + currentUser.uid + '/members');
+            const newMemberRef = await savedMembersRef.push({ 
+                name: name,
+                phone: phone || '' // Lưu số điện thoại, để trống nếu không có
             });
-            
-            // Lưu vào danh sách hội viên đã lưu (nếu chưa có)
-            saveMemberToLibrary(name, phone);
-            
-            // Cập nhật giao diện
-            renderMemberList();
-            
-            // Reset form
-            nameInput.value = '';
-            phoneInput.value = '';
-            positionInput.value = '';
-            nameInput.focus();
-        }
-
-        // Lưu hội viên vào thư viện (chỉ lưu tên)
-        async function saveMemberToLibrary(name, phone) {
-            if (!currentUser) return;
-            
-            // Kiểm tra xem đã có trong danh sách chưa
-            const existing = savedMembers.find(m => m.name === name);
-            if (existing) return;
-            
-            try {
-                const memberRef = database.ref('users/' + currentUser.uid + '/members').push();
-                await memberRef.set({
-                    name: name,
-                    phone: phone || '',
-                    createdAt: new Date().toISOString()
-                });
-                
-                // Cập nhật danh sách đã lưu
-                savedMembers.push({
-                    id: memberRef.key,
-                    name: name,
-                    phone: phone || ''
-                });
-                
-                console.log(`✅ Đã lưu hội viên: ${name}`);
-            } catch (error) {
-                console.error('❌ Lỗi khi lưu hội viên:', error);
+            savedMembers.push({ 
+                id: newMemberRef.key, 
+                name: name,
+                phone: phone || ''
+            });
+        } else {
+            // Cập nhật số điện thoại nếu hội viên đã tồn tại
+            if (phone && phone !== existingMember.phone) {
+                const memberRef = database.ref('users/' + currentUser.uid + '/members/' + existingMember.id);
+                await memberRef.update({ phone: phone });
+                existingMember.phone = phone;
             }
         }
 
+        // ✅ TÁCH RA CÁC CHÂN: A1, A2, A3...
+        for (let i = 1; i <= soChan; i++) {
+            const chanName = soChan > 1 ? `${name}${i}` : name;
+            members.push({
+                id: Date.now().toString() + '_' + i,
+                name: chanName,
+                phone: phone, // Lưu số điện thoại cho mỗi chân
+                position: 1 // mỗi chân = 1
+            });
+        }
+
+        renderMemberList();
+
+        // Reset form
+        nameInput.value = '';
+        phoneInput.value = '';
+        positionInput.value = '';
+        nameInput.focus();
+
+        alert(`✅ Đã thêm ${soChan} chân cho hội viên ${name}`);
+
+    } catch (error) {
+        console.error('❌ Lỗi khi thêm hội viên:', error);
+        alert('Lỗi khi thêm hội viên: ' + error.message);
+    }
+}
+        
+        function renderMemberList() {
+            const memberList = document.getElementById('memberList');
+    const memberCount = document.getElementById('memberCount');
+    
+    if (members.length === 0) {
+        memberList.innerHTML = '<div class="text-muted text-center py-3">Chưa có hội viên nào</div>';
+        memberCount.textContent = 'Tổng: 0 hội viên';
+        return;
+    }
+    
+    // Sắp xếp theo số chân
+    const sortedMembers = [...members].sort((a, b) => a.position - b.position);
+    
+    memberList.innerHTML = sortedMembers.map(member => `
+        <div class="member-item">
+            <div class="member-name">
+                <div>${member.name}</div>
+                ${member.phone ? `<small class="text-muted">${member.phone}</small>` : ''}
+            </div>
+            <div class="member-position">${member.position}</div>
+            <div class="member-actions">
+                <button class="btn btn-sm btn-outline-danger" onclick="removeMember('${member.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    memberCount.textContent = `Tổng: ${members.length} hội viên`;
+}
+        
+        // TÌM KIẾM HỘI VIÊN NHANH
+        function searchMembers() {
+            const searchTerm = document.getElementById('searchMemberInput').value.toLowerCase().trim();
+    const searchResults = document.getElementById('searchResults');
+    
+    // Ẩn kết quả nếu không có từ khóa
+    if (!searchTerm) {
+        searchResults.style.display = 'none';
+        return;
+    }
+    
+    // Tìm kiếm trong danh sách hội viên đã lưu (theo tên và số điện thoại)
+    const filteredMembers = savedMembers.filter(member => 
+        member.name.toLowerCase().includes(searchTerm) ||
+        (member.phone && member.phone.includes(searchTerm))
+    );
+    
+    if (filteredMembers.length === 0) {
+        searchResults.innerHTML = '<div class="text-muted text-center py-3">Không tìm thấy hội viên nào</div>';
+        searchResults.style.display = 'block';
+        return;
+    }
+    
+    // Hiển thị kết quả (hiển thị cả tên và số điện thoại)
+    searchResults.innerHTML = filteredMembers.map(member => `
+        <div class="search-result-item" onclick="selectMemberFromSearch('${member.name}', '${member.phone || ''}')">
+            <div>
+                <div class="member-name">${member.name}</div>
+                ${member.phone ? `<small class="text-muted">${member.phone}</small>` : ''}
+            </div>
+        </div>
+    `).join('');
+    
+    searchResults.style.display = 'block';
+}
+        
+        // Chọn hội viên từ kết quả tìm kiếm
+        function selectMemberFromSearch(memberName) {
+            // Điền tên vào ô tên hội viên
+            document.getElementById('newMemberName').value = memberName;
+            
+            // Focus vào ô số chân để người dùng nhập
+            document.getElementById('newMemberPosition').focus();
+            
+            // Ẩn kết quả tìm kiếm
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('searchMemberInput').value = '';
+        }
+        
         // Xóa hội viên khỏi danh sách tạm thời
-        function removeMember(index) {
-            if (confirm('Bạn có chắc chắn muốn xóa hội viên này?')) {
-                members.splice(index, 1);
+        function removeMember(memberId) {
+            if (confirm('Bạn có chắc chắn muốn xóa hội viên này khỏi danh sách?')) {
+                members = members.filter(m => m.id !== memberId);
                 renderMemberList();
             }
         }
 
-        // Hiển thị danh sách hội viên tạm thời
-        function renderMemberList() {
-            const container = document.getElementById('memberList');
-            const countElement = document.getElementById('memberCount');
-            
-            if (members.length === 0) {
-                container.innerHTML = '<div class="text-muted text-center py-3">Chưa có hội viên nào</div>';
-                countElement.textContent = 'Tổng: 0 hội viên';
-                return;
-            }
-            
-            // Sắp xếp theo số chân
-            const sortedMembers = [...members].sort((a, b) => (a.soChan || 0) - (b.soChan || 0));
-            
-            container.innerHTML = sortedMembers.map((member, index) => {
-                const originalIndex = members.findIndex(m => 
-                    m.ten === member.ten && m.soChan === member.soChan
-                );
-                
-                return `
-                    <div class="member-item">
-                        <div class="member-name">
-                            <strong>${member.ten}</strong>
-                            ${member.soDienThoai ? `<small>${member.soDienThoai}</small>` : ''}
-                        </div>
-                        <div class="member-position">
-                            <span class="badge bg-primary">${member.soChan || 'N/A'}</span>
-                        </div>
-                        <div class="member-actions">
-                            <button class="btn btn-sm btn-outline-danger" onclick="removeMember(${originalIndex})">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            countElement.textContent = `Tổng: ${members.length} hội viên`;
-        }
-
-        // Thêm dây hụi mới
+        // Tạo dây hụi mới
         async function addDayhui() {
             if (!currentUser) {
-                alert('Vui lòng đăng nhập để tạo dây hụi');
-                return;
-            }
-
-            // Lấy dữ liệu từ form
-            const tendayhui = document.getElementById('huiName').value.trim();
-            const loaiHui = document.getElementById('huiType').value;
-            const ngayMoHui = document.getElementById('huiStartDate').value;
-            const kyHan = document.getElementById('huiPeriod').value;
-            const tongSoKy = parseInt(document.getElementById('huiTotalPeriods').value);
-            const tienHui = parseInt(document.getElementById('huiAmount').value);
-            const tienThao = parseInt(document.getElementById('huiBidAmount').value);
-            const thamToiThieu = parseInt(document.getElementById('huiMinBid').value) || 0;
-            const kieuThuThao = document.getElementById('huiBidType').value;
-
-            // Kiểm tra dữ liệu
-            if (!tendayhui || !loaiHui || !ngayMoHui || !kyHan || !tongSoKy || !tienHui || !tienThao) {
-                alert('Vui lòng điền đầy đủ thông tin bắt buộc');
-                return;
-            }
-
-            if (members.length === 0) {
-                alert('Vui lòng thêm ít nhất một hội viên');
-                return;
-            }
-
-            try {
-                const dayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui').push();
-                
-                const dayhuiData = {
-                    tendayhui,
-                    loaiHui,
-                    ngayMoHui,
-                    kyHan,
-                    tongSoKy,
-                    tienHui,
-                    tienThao,
-                    thamToiThieu,
-                    kieuThuThao,
-                    ngayManDuKien: document.getElementById('huiEndDate').value,
-                    hoiVien: members,
-                    soKy: 0, // Số kỳ đã hốt
-                    trangThai: 'pending',
-                    createdAt: new Date().toISOString()
-                };
-
-                await dayhuiRef.set(dayhuiData);
-                console.log('✅ Đã tạo dây hụi mới:', dayhuiRef.key);
-
-                // Đóng modal và tải lại danh sách
-                bootstrap.Modal.getInstance(document.getElementById('addHuiModal')).hide();
-                loadDayhuis();
-                
-                alert('Tạo dây hụi thành công!');
-
-            } catch (error) {
-                console.error('❌ Lỗi khi tạo dây hụi:', error);
-                alert('Lỗi khi tạo dây hụi: ' + error.message);
-            }
+            alert('Vui lòng đăng nhập để tạo dây hụi');
+            return;
         }
 
-        // Xem chi tiết dây hụi
-        function viewDayhui(huiId) {
-            window.location.href = `detail.html?id=${huiId}`;
+        const huiName = document.getElementById('huiName').value.trim();
+        const huiType = document.getElementById('huiType').value;
+        const huiPeriod = document.getElementById('huiPeriod').value;
+        const huiTotalPeriods = parseInt(document.getElementById('huiTotalPeriods').value);
+        const huiAmount = parseInt(document.getElementById('huiAmount').value);
+        const huiBidAmount = parseInt(document.getElementById('huiBidAmount').value);
+        const huiMinBid = parseInt(document.getElementById('huiMinBid').value) || 0;
+        const huiBidType = document.getElementById('huiBidType').value;
+        const huiStartDate = document.getElementById('huiStartDate').value;
+        const huiEndDate = document.getElementById('huiEndDate').value;
+
+        if (!huiName || !huiType || !huiPeriod || !huiTotalPeriods || !huiAmount || !huiBidAmount || !huiStartDate) {
+            alert('Vui lòng điền đầy đủ các trường bắt buộc (*)');
+            return;
         }
 
-        // Sửa dây hụi
-        function editDayhui(huiId) {
-            window.location.href = `edit.html?id=${huiId}`;
+        if (huiTotalPeriods < 1 || huiTotalPeriods > 100) {
+            alert('Số kỳ phải từ 1 đến 100');
+            return;
         }
 
-        // Xóa dây hụi
-        async function deleteDayhui(huiId) {
-            if (!confirm('Bạn có chắc chắn muốn xóa dây hụi này? Hành động này không thể hoàn tác.')) {
-                return;
-            }
-
-            try {
-                await database.ref('users/' + currentUser.uid + '/dayhui/' + huiId).remove();
-                console.log('✅ Đã xóa dây hụi:', huiId);
-                loadDayhuis();
-            } catch (error) {
-                console.error('❌ Lỗi khi xóa dây hụi:', error);
-                alert('Lỗi khi xóa dây hụi: ' + error.message);
-            }
+        if (members.length === 0) {
+            alert('Vui lòng thêm ít nhất một hội viên');
+            return;
         }
 
-        // Hàm tiện ích
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('vi-VN');
+        try {
+            const huiData = {
+                tendayhui: huiName,
+                loaiHui: huiType,
+                kyHan: huiPeriod,
+                tongSoKy: huiTotalPeriods,
+                soKy: 0,
+                tienHui: huiAmount,
+                tienThao: huiBidAmount,
+                tienThaoToiThieu: huiMinBid,
+                kieuThuThao: huiBidType,
+                ngayMoHui: huiStartDate,
+                ngayManDuKien: huiEndDate,
+                trangThai: 'cho_bat_dau',
+                ngayTao: new Date().toISOString(),
+                hoiVien: members.map((member, index) => ({
+                    id: member.id,
+                    ten: member.name,
+                    soDienThoai: member.phone || '', // Lưu số điện thoại
+                    soChan: index + 1, // 🔧 SỬA: Số chân = STT của hội viên (1, 2, 3...)
+                    trangThai: 'dang_tham_gia'
+                }))
+            };
+
+            console.log('📦 Dữ liệu gửi lên Firebase:', huiData);
+
+            const userDayhuiRef = database.ref('users/' + currentUser.uid + '/dayhui');
+            const newHuiRef = await userDayhuiRef.push(huiData);
+            
+            console.log('✅ Đã tạo dây hụi mới với ID:', newHuiRef.key);
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addHuiModal'));
+            modal.hide();
+            
+            alert('Tạo dây hụi thành công!');
+            
+            loadDayhuis();
+            
+        } catch (error) {
+            console.error('❌ Lỗi khi tạo dây hụi:', error);
+            alert('Lỗi khi tạo dây hụi: ' + error.message);
+        }
+    }
+
+        function viewHuiDetail(huiId) {
+            //ert('Xem chi tiết dây hụi: ' + huiId);
+            window.location.href = 'donghot.html?huiId=' + huiId;
         }
 
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-            }).format(amount);
+        // Thêm hàm chuyển hướng đến trang đóng hụi
+        function viewDongHui(huiId) {
+            window.location.href = 'donghui.html?huiId=' + huiId;
         }
 
-        function getPeriodText(period) {
-            switch (period) {
-                case 'ngay': return 'Ngày';
-                case 'tuan': return 'Tuần';
-                case 'thang': return 'Tháng';
-                default: return period || 'N/A';
-            }
-        }
 
-        // Khởi chạy ứng dụng
-        function initializeApp() {
+        // Khởi tạo ứng dụng
+        document.addEventListener('DOMContentLoaded', function() {
+            // Thêm event listeners cho các trường ảnh hưởng đến ngày mãn
+            document.getElementById('huiPeriod').addEventListener('change', calculateEndDate);
+            document.getElementById('huiTotalPeriods').addEventListener('input', calculateEndDate);
+            
             if (initializeFirebase()) {
                 checkAuthState();
             }
-        }
-
-        // Khởi chạy khi trang được tải
-        window.onload = initializeApp;
+        });
     </script>
 </body>
-
 </html>
-
-
-
