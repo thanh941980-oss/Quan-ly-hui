@@ -167,6 +167,90 @@ body {
     font-size: 0.9rem;
 }
 
+/* Header section improvements */
+.header .d-flex {
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header h2 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* Form improvements */
+#chuhuiForm .form-label {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+#chuhuiForm .form-control {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 12px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#chuhuiForm .form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Button group improvements */
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.button-group .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* Statistics card improvements */
+.card-body .d-flex {
+    padding: 8px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.card-body .d-flex:last-child {
+    border-bottom: none;
+}
+
+.card-body strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* List group improvements */
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #f8f9fa;
+    padding: 12px 15px;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.list-group-item small {
+    color: #666;
+}
+
+/* Modal improvements */
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
 /* Cải tiến responsive cho tablet */
 @media (max-width: 1024px) {
     .fixed-header {
@@ -196,35 +280,56 @@ body {
         width: 48%;
         margin-bottom: 5px;
     }
+    
+    .button-group .btn {
+        flex: 1;
+        min-width: 100px;
+    }
 }
 
 /* Cải tiến responsive cho màn hình nhỏ (mobile) */
 @media (max-width: 768px) {
     .fixed-header {
         padding: 8px 15px;
-        height: 50px;
+        height: auto;
+        min-height: 50px;
+        flex-direction: column;
+        gap: 10px;
     }
     
     .fixed-header h2 {
         font-size: 1rem;
+        text-align: center;
+    }
+    
+    .fixed-header > div {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+        align-items: center;
     }
     
     .fixed-header .logout-btn {
-        padding: 4px 8px;
+        padding: 6px 12px;
         font-size: 0.85rem;
+        width: 100%;
+        max-width: 120px;
     }
     
     .container {
         padding: 10px;
-        margin-top: 50px;
+        margin-top: 80px;
     }
     
     .card {
         padding: 15px;
+        margin-bottom: 15px;
     }
     
     .stat-card {
         padding: 15px;
+        margin-bottom: 15px;
     }
     
     .stat-card h3 {
@@ -238,11 +343,14 @@ body {
     
     .row {
         flex-direction: column;
+        margin-left: 0;
+        margin-right: 0;
     }
     
     .col-md-8, .col-md-4 {
         width: 100%;
         max-width: 100%;
+        padding: 0;
     }
     
     .header .d-flex {
@@ -255,6 +363,7 @@ body {
         width: 100%;
         display: flex;
         flex-direction: column;
+        gap: 10px;
     }
     
     #chuHuiSelector {
@@ -264,66 +373,36 @@ body {
     
     .header .d-flex > div .btn {
         width: 100%;
-        margin-bottom: 10px;
+        margin-bottom: 0;
+    }
+    
+    .button-group {
+        flex-direction: column;
+        gap: 8px;
     }
     
     .button-group .btn {
         width: 100%;
-        margin-bottom: 10px;
+        margin-bottom: 0;
     }
     
     .modal-dialog {
         margin: 10px;
+        max-width: calc(100% - 20px);
     }
     
     .modal-content {
         padding: 15px;
     }
-}
-
-/* Cải tiến responsive cho màn hình rất nhỏ */
-@media (max-width: 480px) {
-    .fixed-header {
-        padding: 6px 10px;
-        height: 45px;
+    
+    .modal-body {
+        padding: 15px;
     }
     
-    .fixed-header h2 {
-        font-size: 0.9rem;
-    }
-    
-    .fixed-header > div {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-    }
-    
-    .fixed-header .me-3 {
-        margin-right: 0 !important;
-        margin-bottom: 5px;
-        font-size: 0.8rem;
-    }
-    
-    .container {
-        padding: 8px;
-        margin-top: 45px;
-    }
-    
-    .card {
-        padding: 12px;
-    }
-    
-    .stat-card {
-        padding: 12px;
-    }
-    
-    .card-header {
-        padding: 12px 15px;
-        font-size: 0.9rem;
-    }
-    
+    /* Form improvements for mobile */
     .form-label {
         font-size: 0.9rem;
+        margin-bottom: 6px;
     }
     
     .form-control {
@@ -336,17 +415,126 @@ body {
         padding: 8px 12px;
     }
     
+    /* Card header improvements */
+    .card-header {
+        padding: 12px 15px;
+        font-size: 0.9rem;
+    }
+    
+    /* List group improvements for mobile */
     .list-group-item {
         padding: 10px 12px;
         font-size: 0.85rem;
     }
     
+    /* Statistics improvements */
+    .card-body .d-flex {
+        padding: 6px 0;
+        font-size: 0.9rem;
+    }
+}
+
+/* Cải tiến responsive cho màn hình rất nhỏ */
+@media (max-width: 480px) {
+    .fixed-header {
+        padding: 6px 10px;
+        min-height: 45px;
+    }
+    
+    .fixed-header h2 {
+        font-size: 0.9rem;
+    }
+    
+    .fixed-header > div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .fixed-header .me-3 {
+        margin-right: 0 !important;
+        margin-bottom: 0;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+    
+    .container {
+        padding: 8px;
+        margin-top: 70px;
+    }
+    
+    .card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .stat-card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .stat-card h3 {
+        font-size: 1.3rem;
+    }
+    
+    .card-header {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .form-label {
+        font-size: 0.85rem;
+    }
+    
+    .form-control {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+    }
+    
+    .btn {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+    
+    .list-group-item {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .modal-dialog {
+        margin: 5px;
+        max-width: calc(100% - 10px);
+    }
+    
+    .modal-content {
+        padding: 10px;
+    }
+    
     .modal-body {
-        padding: 15px;
+        padding: 10px;
     }
     
     .modal-footer {
-        padding: 10px 15px;
+        padding: 10px 0;
+    }
+    
+    .modal-footer .btn {
+        flex: 1;
+        margin: 0 5px;
+    }
+    
+    /* Login prompt improvements */
+    .login-prompt {
+        padding: 30px 15px;
+    }
+    
+    .login-prompt h3 {
+        font-size: 1.2rem;
+    }
+    
+    .login-prompt p {
+        font-size: 0.9rem;
     }
 }
 
@@ -359,17 +547,88 @@ body {
     .row {
         display: flex;
         flex-wrap: wrap;
+        margin-left: -15px;
+        margin-right: -15px;
     }
     
     .col-md-8 {
         flex: 0 0 66.666667%;
         max-width: 66.666667%;
+        padding: 0 15px;
     }
     
     .col-md-4 {
         flex: 0 0 33.333333%;
         max-width: 33.333333%;
+        padding: 0 15px;
     }
+    
+    .header .d-flex {
+        align-items: center !important;
+    }
+    
+    .header .d-flex > div {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    #chuHuiSelector {
+        width: auto !important;
+        min-width: 200px;
+    }
+}
+
+/* Animation improvements */
+.card, .stat-card {
+    transition: all 0.3s ease;
+}
+
+.btn {
+    transition: all 0.3s ease;
+}
+
+/* Focus states for accessibility */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+}
+
+/* Loading state improvements */
+.d-none {
+    display: none !important;
+}
+
+/* Text alignment improvements */
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Ensure proper spacing */
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.mt-4 {
+    margin-top: 1.5rem !important;
+}
+
+.me-2 {
+    margin-right: 0.5rem !important;
+}
+
+.me-3 {
+    margin-right: 1rem !important;
 }
     </style>
 </head>
