@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đóng Hốt Hụi - Quản Lý Hụi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 0;
+        }
+
+        /* Thanh header cố định */
+        .fixed-header {
+            background-color: #34495e;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            height: 60px;
+        }
+
+        .fixed-header h2 {
+            font-size: 1.3rem;
+            font-weight: normal;
+        }
+
+        .fixed-header .logout-btn {
+            background-color: transparent;
+            border: 1px solid white;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .fixed-header .logout-btn:hover {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            margin-top: 60px;
+        }
+        
+        .back-btn {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .back-btn:hover {
+            text-decoration: none;
+            background-color: #f0f0f0;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        .card-header {
+            background-color: #34495e;
+            color: white;
+            border-radius: 8px 8px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: #2ecc71;
+            border: none;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-info {
+            background-color: #17a2b8;
+            border: none;
+        }
+        
+        .btn-info:hover {
+            background-color: #138496;
+        }
+        
+        .calculation-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .calculation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .calculation-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #3498db;
+        }
+        
+        .loss {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .profit {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .member-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        
+        .member-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .member-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .member-item.selected {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .member-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* CSS cho bảng danh sách hội viên */
+        .member-table-container {
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+        
+        .member-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .member-table th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px 15px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .member-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+        
+        .member-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .member-table tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        .member-table .stt-col {
+            width: 50px;
+        }
+        
+        .member-table .name-col {
+            text-align: left;
+            min-width: 150px;
+        }
+        
+        .member-table .total-col {
+            font-weight: bold;
+            color: #3498db;
+            min-width: 120px;
+        }
+        
+        .member-table .period-col {
+            min-width: 100px;
+        }
+        
+        .member-table .period-header {
+            background-color: #3498db;
+        }
+        
+        .empty-cell {
+            color: #aaa;
+            font-style: italic;
+        }
+        
+        .paid-amount {
+            color: #2ecc71;
+            font-weight: 500;
+        }
+        
+        .not-paid {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        
+        .tham-keu-row {
+            background-color: #f0f8ff !important;
+            font-weight: 500;
+        }
+        
+        .tham-keu-row td {
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .badge {
+            font-size: 0.7em;
+            margin-left: 5px;
+        }
+        
+        .hot-amount {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        /* CSS cho modal thông tin dây hụi */
+        .hui-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .hui-info-table th {
+            background-color: #f8f9fa;
+            text-align: left;
+            padding: 10px 15px;
+            border: 1px solid #dee2e6;
+            font-weight: 600;
+            width: 30%;
+        }
+        
+        .hui-info-table td {
+            padding: 10px 15px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .member-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .member-list-table th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        
+        .member-list-table td {
+            padding: 8px 10px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        .member-list-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        /* Responsive cho tablet */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 15px;
+            }
+        }
+        
+        /* Responsive cho màn hình nhỏ (mobile) */
+        @media (max-width: 768px) {
+            .fixed-header {
+                padding: 8px 15px;
+                height: 50px;
+            }
+            .fixed-header h2 {
+                font-size: 1rem;
+            }
+            
+            .fixed-header .logout-btn {
+                padding: 4px 8px;
+                font-size: 0.85rem;
+            }
+            
+            .container {
+                padding: 10px;
+                margin-top: 50px;
+            }
+            
+            .card-header {
+                padding: 12px 15px;
+            }
+            
+            .calculation-section {
+                padding: 15px;
+            }
+        }
+
+        /* Responsive cho màn hình rất nhỏ */
+        @media (max-width: 480px) {
+            .fixed-header {
+                padding: 6px 10px;
+                height: 45px;
+            }
+            
+            .fixed-header h2 {
+                font-size: 0.9rem;
+            }
+            
+            .container {
+                padding: 8px;
+                margin-top: 45px;
+            }
+            
+            .card-header {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+            
+            .calculation-section {
+                padding: 12px;
+            }
+            
+            .calculation-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .calculation-item span:last-child {
+                margin-top: 5px;
+                align-self: flex-end;
+            }
+        }
+        .hui-info-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+        
+        .hui-info-header h4 {
+            margin: 0;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .hui-info-header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #dee2e6;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .info-value {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        
+        .member-table-modal {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+        
+        .member-table-modal th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 5px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+        
+        .member-table-modal td {
+            padding: 6px 5px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        .member-table-modal tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .stt-col {
+            width: 40px;
+        }
+        
+        .name-col {
+            text-align: left;
+            min-width: 120px;
+        }
+        
+        .phone-col, .address-col, .chan-col, .ky-col {
+            width: 80px;
+        }
+        
+        .thamhot-col, .tiendong-col, .tienhot-col {
+            width: 100px;
+        }
+        
+        /* Các cột mới */
+        .ky-hot-col {
+            width: 80px;
+        }
+        
+        .tham-keu-col {
+            width: 100px;
+        }
+        
+        .tien-dong-col {
+            width: 120px;
+        }
+        
+        .tien-hot-col {
+            width: 120px;
+        }
+        .member-table .ky-period-col {
+            min-width: 100px;
+            background-color: #f8f9fa;
+        }
+        
+        .member-table .ky-period-header {
+            background-color: #3498db;
+        }
+        
+        .paid-cell {
+            color: #2ecc71;
+            font-weight: 500;
+        }
+        
+        .hot-cell {
+            color: #3498db;
+            font-weight: bold;
+            background-color: #f0f8ff;
+        }
+        
+        .not-paid-cell {
+            color: #e74c3c;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <!-- Thanh header cố định -->
+    <div class="fixed-header">
+        <h2><i class="fas fa-money-bill-wave"></i> Đóng Hốt Hụi</h2>
+        <div>
+            <span class="me-3">Xin chào, <span id="userEmail"></span></span>
+            <button class="logout-btn" onclick="signOut()">
+                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="dashboard.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Quay lại Danh sách dây hụi
+            </a>
+            
+            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#huiInfoModal">
+                <i class="fas fa-info-circle"></i> Thông tin dây hụi
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Thông tin hốt hụi - <span id="huiNameDisplay">[Tên dây hụi]</span>
+            </div>
+            <div class="card-body">
+                <form id="hotHuiForm">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Kỳ hốt hụi *</label>
+                                <input type="number" class="form-control" id="kyHot" 
+                                       min="1" required placeholder="Nhập kỳ hốt" onchange="calculateTotals()">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Ngày hốt *</label>
+                                <input type="date" class="form-control" id="ngayHot" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Giờ hốt *</label>
+                                <input type="time" class="form-control" id="gioHot" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Thăm kêu (số tiền bỏ) *</label>
+                                <input type="number" class="form-control" id="thamKeu" 
+                                       min="0" required value="0" onchange="calculateTotals()">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Trừ tiền khác</label>
+                                <input type="number" class="form-control" id="truTienKhac" 
+                                       min="0" value="0" onchange="calculateTotals()">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Người hốt *</label>
+                                <select class="form-select" id="nguoiHot" required>
+                                    <option value="">Chọn người hốt</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Thông tin dây hụi -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Tiền hụi</label>
+                                <input type="text" class="form-control" id="tienHuiDisplay" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Tiền thảo</label>
+                                <input type="text" class="form-control" id="tienThaoDisplay" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Số kỳ còn lại</label>
+                                <input type="text" class="form-control" id="soKyConLaiDisplay" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Số chân</label>
+                                <input type="text" class="form-control" id="soChanDisplay" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tính toán -->
+                    <div class="calculation-section">
+                        <h5><i class="fas fa-calculator"></i> Tính toán hốt hụi</h5>
+                        
+                        <div class="calculation-item">
+                            <span>Số chân sống:</span>
+                            <span id="soChanSongDisplay">0 chân</span>
+                        </div>
+                        
+                        <div class="calculation-item">
+                            <span>Tiền hụi sau thảo:</span>
+                            <span id="tienHuiSauThaoDisplay">0đ</span>
+                        </div>
+                        
+                        <div class="calculation-item">
+                            <span>Số chân sống × Tiền hụi sau thảo:</span>
+                            <span id="chanSongTienHuiDisplay">0đ</span>
+                        </div>
+                        
+                        <div class="calculation-item">
+                            <span>Số chân chết:</span>
+                            <span id="soChanChetDisplay">0 chân</span>
+                        </div>
+                        
+                        <div class="calculation-item">
+                            <span>Số chân chết × Tiền hụi:</span>
+                            <span id="chanChetTienHuiDisplay">0đ</span>
+                        </div>
+                        
+                        <div class="calculation-item">
+                            <span>Trừ tiền khác:</span>
+                            <span id="truTienKhacDisplay">0đ</span>
+                        </div>
+                        
+                        <div class="calculation-item">
+                            <span>Tổng số tiền hốt:</span>
+                            <span id="tongTienHotDisplay">0đ</span>
+                        </div>
+                        
+                        <div class="calculation-item">
+                            <span>Lời/Lỗ:</span>
+                            <span id="loiLoDisplay" class="profit">0đ</span>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-success flex-fill" onclick="confirmHot()">
+                            <i class="fas fa-check-circle"></i> Xác nhận hốt
+                        </button>
+                        <button type="button" class="btn btn-secondary flex-fill" onclick="cancelHot()">
+                            <i class="fas fa-times-circle"></i> Huỷ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách hội viên -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-users"></i> Danh sách hội viên và lịch sử đóng hụi
+            </div>
+            <div class="card-body">
+                <div class="member-table-container">
+                    <table class="member-table" id="memberTable">
+                        <thead>
+                            <tr>
+                                <th class="stt-col">STT</th>
+                                <th class="name-col">Hội viên</th>
+                                <th class="ky-hot-col">Kỳ hốt</th>
+                                <th class="tham-keu-col">Thăm kêu</th>
+                                <th class="tien-dong-col">Tiền đóng</th>
+                                <th class="tien-hot-col">Tiền hốt</th>
+                                <!-- Các cột kỳ sẽ được thêm động bằng JavaScript -->
+                            </tr>
+                        </thead>
+                        <tbody id="memberTableBody">
+                            <!-- Dữ liệu hội viên sẽ được thêm động bằng JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thông tin dây hụi -->
+    <div class="modal fade" id="huiInfoModal" tabindex="-1" aria-labelledby="huiInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="hui-info-header">
+                    <h4 class="modal-title" id="huiInfoModalLabel">Thông tin dây hụi</h4>
+                    <div class="subtitle">Chi tiết dây hụi và danh sách hội viên</div>
+                </div>
+                <div class="modal-body">
+                    <div id="huiInfoContent">
+                        <!-- Nội dung sẽ được thêm bằng JavaScript -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYV8na-Az2LAgpl6QM2Tiwr6Gm9yhXQZ0",
+            authDomain: "quan-ly-hui-8ad1c.firebaseapp.com",
+            databaseURL: "https://quan-ly-hui-8ad1c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "quan-ly-hui-8ad1c",
+            storageBucket: "quan-ly-hui-8ad1c.firebasestorage.app",
+            messagingSenderId: "665511229865",
+            appId: "1:665511229865:web:fe44f814fff618e35e6cb8"
+        };
+
+        let database;
+        let auth;
+        let currentUser = null;
+        let currentHui = null;
+        let currentHuiId = null;
+
+        // Khởi tạo Firebase
+        function initializeFirebase() {
+            try {
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase SDK chưa được tải');
+                }
+
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                
+                database = firebase.database();
+                auth = firebase.auth();
+                console.log('✅ Firebase đã được khởi tạo thành công');
+                return true;
+            } catch (error) {
+                console.error('❌ Lỗi khởi tạo Firebase:', error);
+                return false;
+            }
+        }
+
+        // Kiểm tra trạng thái đăng nhập
+        function checkAuthState() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    console.log('✅ Người dùng đã đăng nhập:', user.uid, user.email);
+                    document.getElementById('userEmail').textContent = user.email;
+                    loadHuiData();
+                } else {
+                    currentUser = null;
+                    window.location.href = 'dayhui.html';
+                }
+            });
+        }
+
+        // Lấy dữ liệu dây hụi từ URL parameter
+        function getHuiIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('huiId');
+        }
+
+        // Hàm sửa lỗi tự động tất cả các trường bị sai
+        async function fixAllDataFieldNames() {
+            try {
+                const hotRef = database.ref(`users/${currentUser.uid}/dayhui/${currentHuiId}/lichSuHot`);
+                const snapshot = await hotRef.once('value');
+                
+                if (!snapshot.exists()) return;
+                
+                const updates = {};
+                const listHot = snapshot.val();
+                
+                for (const kyHot in listHot) {
+                    const hot = listHot[kyHot];
+                    
+                    // Mapping các trường sai sang trường đúng
+                    const fieldMappings = {
+                        'kyliot': 'kyHot',
+                        'lollo': 'loiLo', 
+                        'ngayliot': 'ngayHot',
+                        'nguolilot': 'nguoiHot',
+                        'nguolilotTen': 'nguoiHotTen',
+                        'nguoIHot': 'nguoiHot',
+                        'nguoIHotTen': 'nguoiHotTen',
+                        'thanKeu': 'thamKeu',
+                        'truTienKhao': 'truTienKhac'
+                    };
+                    
+                    for (const [wrongField, correctField] of Object.entries(fieldMappings)) {
+                        if (hot[wrongField] !== undefined && hot[wrongField] !== null) {
+                            updates[`${kyHot}/${correctField}`] = hot[wrongField];
+                            updates[`${kyHot}/${wrongField}`] = null; // Xóa trường sai
+                        }
+                    }
+                }
+                
+                if (Object.keys(updates).length > 0) {
+                    await hotRef.update(updates);
+                    console.log('✅ Đã sửa tự động tất cả các tên trường sai');
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('❌ Lỗi khi sửa tên trường:', error);
+                return false;
+            }
+        }
+
+        // Hàm chuẩn hóa dữ liệu hốt hụi
+        function normalizeHotData(hotData, kyHot) {
+            return {
+                kyHot: hotData.kyHot || hotData.kyliot || parseInt(kyHot),
+                nguoiHot: hotData.nguoiHot || hotData.nguolilot || hotData.nguoIHot || hotData.nguoHot,
+                nguoiHotTen: hotData.nguoiHotTen || hotData.nguolilotTen || hotData.nguoIHotTen || hotData.nguoHotTen,
+                thamKeu: hotData.thamKeu || hotData.thanKeu || hotData.thanKau || 0,
+                ngayHot: hotData.ngayHot || hotData.ngayliot || new Date().toISOString().split('T')[0],
+                gioHot: hotData.gioHot || '00:00',
+                truTienKhac: hotData.truTienKhac || hotData.truTienKhao || hotData.truTienKhae || 0,
+                tongTienHot: hotData.tongTienHot || 0,
+                loiLo: hotData.loiLo || hotData.lollo || hotData.Ioilo || 0,
+                ngayTao: hotData.ngayTao || new Date().toISOString()
+            };
+        }
+
+        // Tải dữ liệu dây hụi
+        async function loadHuiData() {
+            const huiId = getHuiIdFromURL();
+            if (!huiId) return;
+
+            currentHuiId = huiId;
+
+            try {
+                const huiRef = database.ref('users/' + currentUser.uid + '/dayhui/' + huiId);
+                const snapshot = await huiRef.once('value');
+                if (!snapshot.exists()) return;
+
+                currentHui = snapshot.val();
+
+                // --- 🔧 Tự sửa lỗi tên trường sai nếu có ---
+                const hasFixed = await fixAllDataFieldNames();
+                if (hasFixed) {
+                    console.log('🔄 Reload dữ liệu sau khi sửa lỗi...');
+                    const newSnapshot = await huiRef.once('value');
+                    currentHui = newSnapshot.val();
+                }
+
+                // --- ✅ Chuyển danh sách hội viên từ object về array nếu cần ---
+                if (currentHui.hoiVien && !Array.isArray(currentHui.hoiVien)) {
+                    const tempHoiVien = [];
+                    Object.keys(currentHui.hoiVien).forEach(key => {
+                        tempHoiVien.push(currentHui.hoiVien[key]);
+                    });
+                    currentHui.hoiVien = tempHoiVien;
+                    console.log('📋 Đã chuyển hội viên từ object → array');
+                }
+
+                // --- 🧾 Load lịch sử hốt ---
+                const hotRef = database.ref(`users/${currentUser.uid}/dayhui/${huiId}/lichSuHot`);
+                const hotSnap = await hotRef.once('value');
+
+                if (hotSnap.exists()) {
+                    const listHot = hotSnap.val();
+                    const hoiVienArray = Array.isArray(currentHui.hoiVien)
+                        ? currentHui.hoiVien
+                        : [];
+
+                    for (const kyHot in listHot) {
+                        const rawHotData = listHot[kyHot];
+                        const hot = normalizeHotData(rawHotData, kyHot);
+
+                        const hoiVienId = hot.nguoiHot;
+                        if (!hoiVienId) {
+                            console.warn('⚠️ Không có ID người hốt ở kỳ', kyHot);
+                            continue;
+                        }
+
+                        // --- 🔍 Tìm hội viên trùng ID hoặc trùng tên ---
+                        let hoiVien = hoiVienArray.find(hv => hv.id === hoiVienId);
+
+                        if (!hoiVien && hot.nguoiHotTen) {
+                            hoiVien = hoiVienArray.find(hv => hv.ten === hot.nguoiHotTen.split(' ')[0]);
+                        }
+
+                        if (hoiVien) {
+                            hoiVien.daHot = true;
+                            hoiVien.kyDaHot = hot.kyHot;
+                            hoiVien.ngayHot = hot.ngayHot;
+                            hoiVien.thamKeu = hot.thamKeu;
+                            console.log(`✅ ${hoiVien.ten} đã hốt kỳ ${hot.kyHot}`);
+                        } else {
+                            console.warn(`❌ Không tìm thấy hội viên có ID ${hoiVienId} ou tên ${hot.nguoiHotTen}`);
+                        }
+                    }
+                } else {
+                    console.log('ℹ️ Chưa có lịch sử hốt hụi.');
+                }
+
+                // --- Hiển thị thông tin và bảng ---
+                displayHuiInfo();
+                loadHoiVienList();
+                setDefaultDateTime();
+                loadMemberTable();
+
+            } catch (error) {
+                console.error('❌ Lỗi khi tải dữ liệu dây hụi:', error);
+            }
+        }
+
+        // Hiển thị thông tin dây hụi
+        function displayHuiInfo() {
+            if (!currentHui) return;
+
+            document.getElementById('huiNameDisplay').textContent = currentHui.tendayhui || 'Chưa có tên';
+            document.getElementById('tienHuiDisplay').value = formatCurrency(currentHui.tienHui || 0);
+            document.getElementById('tienThaoDisplay').value = formatCurrency(currentHui.tienThao || 0);
+            
+            const soKyConLai = (currentHui.tongSoKy || 0) - (currentHui.soKy || 0);
+            document.getElementById('soKyConLaiDisplay').value = soKyConLai + ' kỳ';
+            
+            // SỬA LẠI: Sử dụng getHoiVienArray() để lấy số chân chính xác
+            const soHoiVien = getHoiVienArray().length;
+            document.getElementById('soChanDisplay').value = soHoiVien + ' chân';
+
+            calculateTotals();
+        }
+
+        // Tải danh sách hội viên
+        function loadHoiVienList() {
+            if (!currentHui || !currentHui.hoiVien) return;
+
+            const nguoiHotSelect = document.getElementById('nguoiHot');
+            nguoiHotSelect.innerHTML = '<option value="">Chọn người hốt</option>';
+
+            let hoiVienArray = getHoiVienArray();
+            
+            hoiVienArray.forEach(hoiVien => {
+                if (hoiVien.trangThai === 'dang_tham_gia' && !hoiVien.daHot) {
+                    const option = document.createElement('option');
+                    option.value = hoiVien.id;
+                    option.textContent = hoiVien.ten + ' (Chân ' + hoiVien.soChan + ')';
+                    nguoiHotSelect.appendChild(option);
+                }
+            });
+        }
+
+        // Hàm lấy danh sách hội viên dạng array
+        function getHoiVienArray() {
+            if (!currentHui || !currentHui.hoiVien) return [];
+
+            // Lấy ra danh sách hội viên (dù là object hay array)
+            let hoiVienArray = Array.isArray(currentHui.hoiVien)
+                ? currentHui.hoiVien
+                : Object.keys(currentHui.hoiVien).map(key => ({
+                    ...currentHui.hoiVien[key],
+                    id: key
+                }));
+
+            // Lọc bỏ phần tử không có tên
+            hoiVienArray = hoiVienArray.filter(hv => hv && hv.ten);
+
+            // 🧩 Lọc trùng ID hoặc trùng tên + số chân
+            const unique = [];
+            const seen = new Set();
+            for (const hv of hoiVienArray) {
+                const key = hv.id || `${hv.ten}_${hv.soChan}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    unique.push(hv);
+                }
+            }
+
+            console.log('📊 Số hội viên thực tế:', unique.length, unique);
+            return unique;
+        }
+
+        // Đặt ngày giờ mặc định
+        function setDefaultDateTime() {
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            const time = now.toTimeString().substring(0, 5);
+
+            document.getElementById('ngayHot').value = today;
+            document.getElementById('gioHot').value = time;
+        }
+
+        // Tính toán tổng tiền
+        function calculateTotals() {
+            if (!currentHui) return;
+
+            const tienHui = parseFloat(currentHui.tienHui) || 0;
+            const tienThao = parseFloat(currentHui.tienThao) || 0;
+            const thamKeu = parseFloat(document.getElementById('thamKeu').value) || 0;
+            const truTienKhac = parseFloat(document.getElementById('truTienKhac').value) || 0;
+
+            // SỬA LẠI: Sử dụng getHoiVienArray() để lấy số chân chính xác
+            let hoiVienArray = getHoiVienArray();
+
+            // Tính số chân sống (chưa hốt) và chết (đã hốt)
+            const soChanSong = hoiVienArray.filter(hv => 
+                hv.trangThai === 'dang_tham_gia' && !hv.daHot
+            ).length;
+            
+            const soChanChet = hoiVienArray.filter(hv => 
+                hv.trangThai === 'dang_tham_gia' && hv.daHot
+            ).length;
+
+            // Tính toán các giá trị
+            const tienHuiSauThao = tienHui - tienThao;
+            const chanSongTienHui = soChanSong * tienHuiSauThao;
+            const chanChetTienHui = soChanChet * tienHui;
+            const tongTienHot = chanSongTienHui + chanChetTienHui - truTienKhac;
+            const loiLo = tienHui*((soChanSong+soChanChet) - 1)- tongTienHot;
+
+            // Hiển thị kết quả
+            document.getElementById('soChanSongDisplay').textContent = soChanSong + ' chân';
+            document.getElementById('soChanChetDisplay').textContent = soChanChet + ' chân';
+            document.getElementById('tienHuiSauThaoDisplay').textContent = formatCurrency(tienHuiSauThao);
+            document.getElementById('chanSongTienHuiDisplay').textContent = formatCurrency(chanSongTienHui);
+            document.getElementById('chanChetTienHuiDisplay').textContent = formatCurrency(chanChetTienHui);
+            document.getElementById('truTienKhacDisplay').textContent = formatCurrency(truTienKhac);
+            document.getElementById('tongTienHotDisplay').textContent = formatCurrency(tongTienHot);
+            
+            const loiLoElement = document.getElementById('loiLoDisplay');
+            loiLoElement.textContent = formatCurrency(loiLo);
+            if (loiLo > 0) {
+                loiLoElement.className = 'profit';
+            } else if (loiLo < 0) {
+                loiLoElement.className = 'loss';
+            } else {
+                loiLoElement.className = '';
+            }
+        }
+
+        // Xác nhận hốt hụi
+        async function confirmHot() {
+            if (!validateForm()) return;
+
+            const kyHot = parseInt(document.getElementById('kyHot').value);
+            const nguoiHot = document.getElementById('nguoiHot').value;
+            const nguoiHotSelect = document.getElementById('nguoiHot');
+            const nguoiHotTen = nguoiHotSelect.options[nguoiHotSelect.selectedIndex].text;
+            const thamKeu = parseFloat(document.getElementById('thamKeu').value) || 0;
+            const ngayHot = document.getElementById('ngayHot').value;
+            const gioHot = document.getElementById('gioHot').value;
+            const truTienKhac = parseFloat(document.getElementById('truTienKhac').value) || 0;
+            
+            // Tính toán lại tổng tiền hốt
+            const tienHui = parseFloat(currentHui.tienHui) || 0;
+            const tienThao = parseFloat(currentHui.tienThao) || 0;
+            const tienHuiSauThao = tienHui - tienThao;
+            
+            // SỬA LẠI: Sử dụng getHoiVienArray() để lấy số chân chính xác
+            let hoiVienArray = getHoiVienArray();
+            
+            const soChanSong = hoiVienArray.filter(hv => 
+                hv.trangThai === 'dang_tham_gia' && !hv.daHot
+            ).length;
+            
+            const soChanChet = hoiVienArray.filter(hv => 
+                hv.trangThai === 'dang_tham_gia' && hv.daHot
+            ).length;
+            
+            const chanSongTienHui = soChanSong * tienHuiSauThao;
+            const chanChetTienHui = soChanChet * tienHui;
+            const tongTienHot = chanSongTienHui + chanChetTienHui - truTienKhac;
+            const loiLo = tongTienHot - tienHui;
+
+            try {
+                // Lưu thông tin hốt hụi
+                const hotRef = database.ref(`users/${currentUser.uid}/dayhui/${currentHuiId}/lichSuHot/${kyHot}`);
+                const hotData = {
+                    kyHot: kyHot,
+                    nguoiHot: nguoiHot,
+                    nguoiHotTen: nguoiHotTen,
+                    thamKeu: thamKeu,
+                    ngayHot: ngayHot,
+                    gioHot: gioHot,
+                    truTienKhac: truTienKhac,
+                    tongTienHot: tongTienHot,
+                    loiLo: loiLo,
+                    ngayTao: new Date().toISOString()
+                };
+
+                await hotRef.set(hotData);
+                console.log('✅ Đã lưu thông tin hốt hụi:', hotData);
+
+                // Cập nhật trạng thái hốt cho hội viên
+                const hoiVienRef = database.ref(`users/${currentUser.uid}/dayhui/${currentHuiId}/hoiVien`);
+                const hoiVienSnapshot = await hoiVienRef.once('value');
+                const hoiVienData = hoiVienSnapshot.val();
+                
+                let updatedHoiVienData = {};
+                let found = false;
+                
+                // Tìm hội viên theo ID hoặc tên
+                if (Array.isArray(hoiVienData)) {
+                    hoiVienData.forEach((hoiVien, index) => {
+                        if (hoiVien.id === nguoiHot || hoiVien.ten === nguoiHotTen.split(' ')[0]) {
+                            updatedHoiVienData[index] = {
+                                ...hoiVien,
+                                daHot: true,
+                                kyDaHot: kyHot,
+                                ngayHot: ngayHot,
+                                thamKeu: thamKeu
+                            };
+                            found = true;
+                        } else {
+                            updatedHoiVienData[index] = hoiVien;
+                        }
+                    });
+                } else {
+                    Object.keys(hoiVienData).forEach(key => {
+                        const hoiVien = hoiVienData[key];
+                        if (hoiVien.id === nguoiHot || hoiVien.ten === nguoiHotTen.split(' ')[0]) {
+                            updatedHoiVienData[key] = {
+                                ...hoiVien,
+                                daHot: true,
+                                kyDaHot: kyHot,
+                                ngayHot: ngayHot,
+                                thamKeu: thamKeu
+                            };
+                            found = true;
+                        } else {
+                            updatedHoiVienData[key] = hoiVien;
+                        }
+                    });
+                }
+
+                if (found) {
+                    await hoiVienRef.set(updatedHoiVienData);
+                    console.log('✅ Đã cập nhật trạng thái hốt cho hội viên');
+                } else {
+                    console.warn('⚠️ Không tìm thấy hội viên để cập nhật trạng thái hốt');
+                }
+
+                // Cập nhật số kỳ
+                const soKyHienTai = parseInt(currentHui.soKy) || 0;
+                const soKyMoi = soKyHienTai + 1;
+                
+                await database.ref(`users/${currentUser.uid}/dayhui/${currentHuiId}`).update({
+                    soKy: soKyMoi
+                });
+
+                alert('✅ Hốt hụi thành công!');
+                window.location.reload();
+
+            } catch (error) {
+                console.error('❌ Lỗi khi hốt hụi:', error);
+                alert('❌ Có lỗi xảy ra khi hốt hụi: ' + error.message);
+            }
+        }
+
+        // Hủy hốt hụi
+        function cancelHot() {
+            if (confirm('Bạn có chắc chắn muốn hủy hốt hụi không?')) {
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // Kiểm tra tính hợp lệ của form
+        function validateForm() {
+            const kyHot = document.getElementById('kyHot').value;
+            const nguoiHot = document.getElementById('nguoiHot').value;
+            const ngayHot = document.getElementById('ngayHot').value;
+            const gioHot = document.getElementById('gioHot').value;
+
+            if (!kyHot || !nguoiHot || !ngayHot || !gioHot) {
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+                return false;
+            }
+
+            // Kiểm tra kỳ hốt có hợp lệ không
+            const soKyConLai = (currentHui.tongSoKy || 0) - (currentHui.soKy || 0);
+            if (parseInt(kyHot) > soKyConLai) {
+                alert('Kỳ hốt không được vượt quá số kỳ còn lại!');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Định dạng tiền tệ
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+
+        // Đăng xuất
+        function signOut() {
+            auth.signOut().then(() => {
+                window.location.href = 'dayhui.html';
+            }).catch((error) => {
+                console.error('Lỗi đăng xuất:', error);
+            });
+        }
+
+        // Tải bảng danh sách hội viên
+        async function loadMemberTable() {
+    if (!currentHui || !currentHui.hoiVien) return;
+
+    const tableHead = document.querySelector('#memberTable thead tr');
+    const tableBody = document.getElementById('memberTableBody');
+
+    while (tableHead.children.length > 3) {
+        tableHead.removeChild(tableHead.lastChild);
+    }
+    tableBody.innerHTML = '';
+
+    const hoiVienArray = getHoiVienArray()
+        .filter(hv => hv && hv.ten && hv.soChan)
+        .map((hv, i) => ({ ...hv, index: i + 1 }));
+
+    const tongSoKy = currentHui.tongSoKy || 0;
+    const soKyDaHot = currentHui.soKy || 0;
+    const tienHui = currentHui.tienHui || 0;
+    const tongHoiVien = hoiVienArray.length;
+
+    // LẤY DANH SÁCH THĂM KÊU THEO TỪNG KỲ
+    const thamKeuTheoKy = {};
+    try {
+        const hotRef = database.ref(`users/${currentUser.uid}/dayhui/${currentHuiId}/lichSuHot`);
+        const hotSnap = await hotRef.once('value');
+        if (hotSnap.exists()) {
+            const listHot = hotSnap.val();
+            for (const kyHot in listHot) {
+                const hotData = listHot[kyHot];
+                const normalizedData = normalizeHotData(hotData, kyHot);
+                thamKeuTheoKy[parseInt(kyHot)] = normalizedData.thamKeu || 0;
+            }
+        }
+    } catch (error) {
+        console.error('❌ Lỗi khi lấy thăm kêu theo kỳ:', error);
+    }
+
+    for (let i = 1; i <= tongSoKy; i++) {
+        const th = document.createElement('th');
+        th.className = 'period-col period-header';
+        th.textContent = 'Kỳ ' + i;
+        tableHead.appendChild(th);
+    }
+
+    // Hàng thăm kêu
+    const thamKeuRow = document.createElement('tr');
+    thamKeuRow.className = 'tham-keu-row';
+
+    const sttCell = document.createElement('td');
+    sttCell.textContent = '';
+    thamKeuRow.appendChild(sttCell);
+
+    const nameCell = document.createElement('td');
+    nameCell.textContent = 'Thăm kêu (số tiền bỏ)';
+    nameCell.style.fontWeight = 'bold';
+    thamKeuRow.appendChild(nameCell);
+
+    const totalCell = document.createElement('td');
+    totalCell.textContent = '';
+    thamKeuRow.appendChild(totalCell);
+
+    for (let i = 1; i <= tongSoKy; i++) {
+        const cell = document.createElement('td');
+        const thamKeuKyNay = thamKeuTheoKy[i] || (i <= soKyDaHot ? (currentHui.thamKeu || 0) : 0);
+        cell.textContent = i <= soKyDaHot ? formatCurrency(thamKeuKyNay) : '';
+        thamKeuRow.appendChild(cell);
+    }
+    tableBody.appendChild(thamKeuRow);
+
+    // Hàng người hốt & số tiền nhận
+    const rowNguoiHot = document.createElement('tr');
+    rowNguoiHot.className = 'tham-keu-row';
+
+    const empty1 = document.createElement('td');
+    empty1.textContent = '';
+    rowNguoiHot.appendChild(empty1);
+
+    const titleCell = document.createElement('td');
+    titleCell.textContent = 'Người hốt & số tiền nhận';
+    titleCell.style.fontWeight = 'bold';
+    rowNguoiHot.appendChild(titleCell);
+
+    const empty2 = document.createElement('td');
+    empty2.textContent = '';
+    rowNguoiHot.appendChild(empty2);
+
+    for (let i = 1; i <= tongSoKy; i++) {
+        const cell = document.createElement('td');
+        const nguoiHot = hoiVienArray.find(hv => hv.daHot && hv.kyDaHot === i);
+
+        if (nguoiHot) {
+            const soChanSong = tongHoiVien - (i - 1);
+            const soChanChet = i - 1;
+            const thamKeuKyNay = thamKeuTheoKy[i] || (currentHui.thamKeu || 0);
+            const tienNhan = (soChanSong * (tienHui - thamKeuKyNay)) + (soChanChet * tienHui) - currentHui.tienThao - (tienHui - thamKeuKyNay);
+            
+            cell.innerHTML = `<div><b>${nguoiHot.ten}</b></div>
+                            <div class="text-success">${formatCurrency(tienNhan)}</div>
+                            <small class="text-muted">Lãi/Lỗ: ${formatCurrency(((tienHui * (soChanSong - 1)) - ((soChanSong - 1) * (tienHui - thamKeuKyNay) - currentHui.tienThao)) * -1)}</small>`;
+        } else {
+            cell.textContent = i <= soKyDaHot ? 'Chưa hốt' : '-';
+            cell.style.color = i <= soKyDaHot ? '#e74c3c' : '#999';
+        }
+        rowNguoiHot.appendChild(cell);
+    }
+    tableBody.appendChild(rowNguoiHot);
+
+    // Các hàng hội viên
+    hoiVienArray.forEach((hoiVien, index) => {
+        const row = document.createElement('tr');
+
+        const sttCell = document.createElement('td');
+        sttCell.textContent = index + 1;
+        row.appendChild(sttCell);
+
+        const nameCell = document.createElement('td');
+        nameCell.className = 'name-col';
+        nameCell.textContent = `${hoiVien.ten} (Chân ${hoiVien.soChan})`;
+        if (hoiVien.daHot) {
+            nameCell.innerHTML += ` <span class="badge bg-success">Đã hốt kỳ ${hoiVien.kyDaHot}</span>`;
+        }
+        row.appendChild(nameCell);
+
+        let tongTien = 0;
+        const tienDongKy = [];
+
+        for (let i = 1; i <= tongSoKy; i++) {
+            let soTien = 0;
+            let displayText = '';
+            let cellClass = '';
+            let isHotKy = false;
+
+            const thamKeuKyNay = thamKeuTheoKy[i] || (i <= soKyDaHot ? (currentHui.thamKeu || 0) : 0);
+
+            if (hoiVien.daHot && hoiVien.kyDaHot === i) {
+                isHotKy = true;
+                const soChanSong = tongHoiVien - (i - 1);
+                const soChanChet = i - 1;
+                soTien = (soChanSong * (tienHui - thamKeuKyNay)) + (soChanChet * tienHui) - currentHui.tienThao - (tienHui - thamKeuKyNay);
+                tongTien += soTien;
+                displayText = formatCurrency(soTien);
+                cellClass = 'hot-amount';
+            } else if (hoiVien.daDong && hoiVien.daDong[i]) {
+                if (hoiVien.daHot && i > hoiVien.kyDaHot) {
+                    soTien = tienHui;
+                } else {
+                    soTien = tienHui - thamKeuKyNay;
+                }
+                tongTien += soTien;
+                displayText = formatCurrency(soTien);
+                cellClass = 'paid-amount';
+            } else {
+                if (i <= soKyDaHot) {
+                    if (hoiVien.daHot && i > hoiVien.kyDaHot) {
+                        displayText = formatCurrency(tienHui);
+                    } else {
+                        displayText = formatCurrency(tienHui - thamKeuKyNay);
+                    }
+                    cellClass = 'not-paid';
+                } else {
+                    displayText = '';
+                    cellClass = 'empty-cell';
+                }
+            }
+
+            tienDongKy.push({
+                ky: i,
+                displayText: displayText,
+                cellClass: cellClass,
+                isHotKy: isHotKy,
+                soTien: soTien
+            });
+        }
+
+        const totalCell = document.createElement('td');
+        totalCell.textContent = formatCurrency(tongTien);
+        totalCell.className = 'total-col';
+        row.appendChild(totalCell);
+
+        tienDongKy.forEach(item => {
+            const cell = document.createElement('td');
+            cell.textContent = item.displayText;
+            cell.className = item.cellClass;
+            
+            if (item.isHotKy) {
+                cell.title = `Hốt kỳ ${item.ky} - Nhận: ${item.displayText}`;
+            }
+            
+            row.appendChild(cell);
+        });
+
+        tableBody.appendChild(row);
+    });
+}
+
+        // Hiển thị modal thông tin dây hụi
+        function showHuiInfoModal() {
+            if (!currentHui) return;
+
+            const huiInfoContent = document.getElementById('huiInfoContent');
+            huiInfoContent.innerHTML = '';
+
+            // Tạo nội dung modal
+            const infoHTML = `
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Tên dây hụi:</span>
+                        <span class="info-value">${currentHui.tendayhui || 'Chưa đặt tên'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tiền hụi:</span>
+                        <span class="info-value">${formatCurrency(currentHui.tienHui || 0)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tiền thảo:</span>
+                        <span class="info-value">${formatCurrency(currentHui.tienThao || 0)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tổng số kỳ:</span>
+                        <span class="info-value">${currentHui.tongSoKy || 0} kỳ</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Số kỳ đã qua:</span>
+                        <span class="info-value">${currentHui.soKy || 0} kỳ</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Số kỳ còn lại:</span>
+                        <span class="info-value">${(currentHui.tongSoKy || 0) - (currentHui.soKy || 0)} kỳ</span>
+                    </div>
+                </div>
+
+                <h5 class="mt-4">Danh sách hội viên</h5>
+                <div class="table-responsive">
+                    <table class="member-table-modal">
+                        <thead>
+                            <tr>
+                                <th class="stt-col">STT</th>
+                                <th class="name-col">Hội viên</th>
+                                <th class="phone-col">Số điện thoại</th>
+                                <th class="address-col">Địa chỉ</th>
+                                <th class="chan-col">Số chân</th>
+                                <th class="ky-col">Kỳ đã hốt</th>
+                                <th class="thamhot-col">Thăm kêu</th>
+                                <th class="tiendong-col">Tiền đóng</th>
+                                <th class="tienhot-col">Tiền hốt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="huiInfoMemberList">
+                            <!-- Danh sách hội viên sẽ được thêm bằng JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            huiInfoContent.innerHTML = infoHTML;
+
+            // Tải danh sách hội viên cho modal
+            loadHuiInfoMemberList();
+        }
+
+        // Tải danh sách hội viên cho modal thông tin
+        function loadHuiInfoMemberList() {
+            if (!currentHui) return;
+
+            const memberList = document.getElementById('huiInfoMemberList');
+            memberList.innerHTML = '';
+
+            // SỬA LẠI: Sử dụng getHoiVienArray() để lấy danh sách hội viên chính xác
+            let hoiVienArray = getHoiVienArray();
+
+            // Tải lịch sử hốt hụi
+            const hotRef = database.ref(`users/${currentUser.uid}/dayhui/${currentHuiId}/lichSuHot`);
+            hotRef.once('value').then(snapshot => {
+                const lichSuHot = snapshot.val() || {};
+
+                hoiVienArray.forEach((hoiVien, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // STT
+                    const sttCell = document.createElement('td');
+                    sttCell.textContent = index + 1;
+                    row.appendChild(sttCell);
+
+                    // Tên hội viên
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'name-col';
+                    nameCell.textContent = hoiVien.ten;
+                    row.appendChild(nameCell);
+
+                    // Số điện thoại
+                    const phoneCell = document.createElement('td');
+                    phoneCell.textContent = hoiVien.soDienThoai || '';
+                    row.appendChild(phoneCell);
+
+                    // Địa chỉ
+                    const addressCell = document.createElement('td');
+                    addressCell.textContent = hoiVien.diaChi || '';
+                    row.appendChild(addressCell);
+
+                    // Số chân
+                    const chanCell = document.createElement('td');
+                    chanCell.textContent = hoiVien.soChan || '';
+                    row.appendChild(chanCell);
+
+                    // Kỳ đã hốt
+                    const kyCell = document.createElement('td');
+                    kyCell.textContent = hoiVien.kyDaHot || '';
+                    row.appendChild(kyCell);
+
+                    // Thăm kêu
+                    const thamKeuCell = document.createElement('td');
+                    thamKeuCell.textContent = hoiVien.thamKeu ? formatCurrency(hoiVien.thamKeu) : '';
+                    row.appendChild(thamKeuCell);
+
+                    // Tiền đóng
+                    const tienDongCell = document.createElement('td');
+                    
+                    // Người hốt thì tiền đóng = 0, các hội viên còn lại = tiền hụi - thăm kêu
+                    let tienDong = 0;
+                    if (!hoiVien.daHot) {
+                        tienDong = (currentHui.tienHui || 0) - (hoiVien.thamKeu || 0);
+                    }
+                    tienDongCell.textContent = formatCurrency(tienDong);
+                    row.appendChild(tienDongCell);
+
+                    // Tiền hốt
+                    const tienHotCell = document.createElement('td');
+                    
+                    // Chỉ hiển thị tiền hốt cho người đã hốt
+                    if (hoiVien.daHot && hoiVien.kyDaHot) {
+                        const kyHot = hoiVien.kyDaHot;
+                        const hotData = lichSuHot[kyHot];
+                        if (hotData) {
+                            const normalizedHotData = normalizeHotData(hotData, kyHot);
+                            tienHotCell.textContent = formatCurrency(normalizedHotData.tongTienHot || 0);
+                            tienHotCell.classList.add('hot-amount');
+                        }
+                    }
+                    row.appendChild(tienHotCell);
+
+                    memberList.appendChild(row);
+                });
+            });
+        }
+
+        // Khởi tạo ứng dụng khi trang được tải
+        document.addEventListener('DOMContentLoaded', function() {
+            if (initializeFirebase()) {
+                checkAuthState();
+            } else {
+                console.error('❌ Không thể khởi tạo Firebase');
+                alert('Có lỗi xảy ra khi khởi tạo ứng dụng. Vui lòng thử lại sau.');
+            }
+
+            // Thêm sự kiện cho modal thông tin dây hụi
+            const huiInfoModal = document.getElementById('huiInfoModal');
+            if (huiInfoModal) {
+                huiInfoModal.addEventListener('show.bs.modal', showHuiInfoModal);
+            }
+        });
+    </script>
+</body>
+</html>
